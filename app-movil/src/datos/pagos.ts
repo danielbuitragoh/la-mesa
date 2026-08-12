@@ -5,12 +5,22 @@ import { Pedido } from './tipos';
 /**
  * Cobro de un pedido.
  *
+ * Esta es una demo de portafolio: el pago SIEMPRE es simulado. La
+ * integración con Wompi de más abajo queda escrita y documentada, pero
+ * no se activa a menos que exista una llave pública real — que a
+ * propósito no está puesta, porque los pagos reales están fuera de
+ * alcance (ver README, sección "Trabajo futuro"). Sin esta comprobación,
+ * cualquier pago que no fuera en efectivo intentaría llamar a la función
+ * de servidor real y fallaría, porque no hay credenciales de Wompi.
+ *
  * La app no arma la URL de la pasarela ni conoce el monto que se firma:
  * pide la firma al servidor mandando solo el id del pedido. El total se
  * recalcula allá desde la base de datos. Si esto se hiciera en el teléfono,
  * el secreto de integridad viajaría dentro del APK y cualquiera podría
  * firmar cobros a nombre de La Mesa.
  */
+
+const HAY_PASARELA_REAL = Boolean(process.env.EXPO_PUBLIC_WOMPI_LLAVE_PUBLICA);
 
 export type ResultadoPago =
   | { estado: 'aprobado' }
@@ -22,7 +32,8 @@ export async function cobrar(pedido: Pedido): Promise<ResultadoPago> {
   // El efectivo no pasa por la pasarela: lo cobra el restaurante al entregar
   if (pedido.metodo_pago === 'efectivo') return { estado: 'aprobado' };
 
-  if (!HAY_BACKEND) return { estado: 'aprobado' }; // modo demostración
+  // Sin backend, o sin llave de Wompi (el caso de esta demo): se simula.
+  if (!HAY_BACKEND || !HAY_PASARELA_REAL) return { estado: 'aprobado' };
 
   const { data, error } = await supabase.functions.invoke('crear-transaccion', {
     body: { pedido_id: pedido.id },

@@ -14,12 +14,28 @@ const PERFIL_DEMO: Perfil = {
   puntos_historicos: 1180,
 };
 
+/**
+ * Credenciales del usuario de demostración.
+ *
+ * Esto es una demo de portafolio: cualquiera que abra la URL tiene que
+ * poder pedir sin registrarse ni esperar un correo. Las credenciales van
+ * a la vista en la pantalla de entrar a propósito — la cuenta no tiene
+ * nada que proteger y RLS impide que vea pedidos de nadie más.
+ *
+ * En un producto real esto no existiría.
+ */
+export const DEMO = {
+  correo: process.env.EXPO_PUBLIC_DEMO_EMAIL ?? 'demo@lamesa.co',
+  clave: process.env.EXPO_PUBLIC_DEMO_PASSWORD ?? 'lamesa2026',
+};
+
 interface EstadoSesion {
   cargando: boolean;
   autenticado: boolean;
   perfil: Perfil | null;
 
   iniciar: () => Promise<void>;
+  entrarComoDemo: () => Promise<{ ok: boolean; mensaje: string }>;
   entrarConCorreo: (correo: string) => Promise<{ ok: boolean; mensaje: string }>;
   verificarCodigo: (correo: string, codigo: string) => Promise<{ ok: boolean; mensaje: string }>;
   entrarConGoogle: () => Promise<{ ok: boolean; mensaje: string }>;
@@ -48,6 +64,28 @@ export const usarSesion = create<EstadoSesion>((set, get) => ({
       else set({ perfil: null });
     });
     set({ cargando: false });
+  },
+
+  /**
+   * Entrada directa con la cuenta de demostración. Un solo toque, sin
+   * correo de por medio: es lo que hace que un desconocido pueda probar
+   * el pedido completo desde el móvil en menos de dos minutos.
+   */
+  entrarComoDemo: async () => {
+    if (!HAY_BACKEND) {
+      set({ autenticado: true, perfil: PERFIL_DEMO });
+      return { ok: true, mensaje: '' };
+    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email: DEMO.correo,
+      password: DEMO.clave,
+    });
+    if (error) {
+      console.warn('[La Mesa] no se pudo entrar con la cuenta demo', error);
+      return { ok: false, mensaje: 'La cuenta de demostración no está disponible ahora mismo.' };
+    }
+    await get().refrescarPerfil();
+    return { ok: true, mensaje: '' };
   },
 
   /** Código de seis dígitos al correo: sin contraseñas que recordar */

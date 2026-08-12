@@ -28,6 +28,11 @@
       },
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
     },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icono.png"
+    },
     "plugins": [
       "expo-router",
       "expo-font",

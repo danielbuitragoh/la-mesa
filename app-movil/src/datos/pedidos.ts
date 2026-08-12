@@ -18,19 +18,31 @@ export interface BorradorPedido {
 }
 
 /**
- * Crea el pedido. Nace en `pendiente_pago` y solo pasa a `recibido`
- * cuando la pasarela confirma — salvo efectivo, que entra directo
- * porque el cobro ocurre al entregar.
+ * Crea el pedido.
+ *
+ * Esta es una demo de portafolio: el pago SIEMPRE es simulado, no hay
+ * pasarela real detrás. Por eso el pedido nace directo en `recibido` con
+ * `estado_pago: 'aprobado'`, sin pasar por `pendiente_pago` — ese estado
+ * intermedio solo tiene sentido cuando algo del lado del servidor puede
+ * confirmar o rechazar el cobro, y aquí no lo hay. El panel de cocina
+ * filtra explícitamente `pendiente_pago`, así que dejar el pedido ahí
+ * significaría que nunca llega a la cocina: justo lo que esta demo
+ * necesita demostrar que sí funciona.
+ *
+ * Trabajo futuro (fuera de alcance): con una pasarela real, esto vuelve
+ * a nacer en `pendiente_pago` y solo pasa a `recibido` cuando el webhook
+ * confirma — salvo efectivo, que entra directo porque el cobro ocurre
+ * al entregar.
  */
 export async function crearPedido(b: BorradorPedido): Promise<Pedido | null> {
   if (!HAY_BACKEND) {
     return {
       id: 'demo',
       numero: 1043,
-      estado: b.metodo_pago === 'efectivo' ? 'recibido' : 'pendiente_pago',
+      estado: 'recibido',
       modalidad: b.modalidad,
       metodo_pago: b.metodo_pago,
-      estado_pago: 'pendiente',
+      estado_pago: 'aprobado',
       subtotal: b.subtotal,
       descuento: b.descuento,
       costo_domicilio: b.costo_domicilio,
@@ -63,8 +75,11 @@ export async function crearPedido(b: BorradorPedido): Promise<Pedido | null> {
       sede_id: SEDE_ID,
       mesa_id: b.mesa_id ?? null,
       modalidad: b.modalidad,
-      estado: b.metodo_pago === 'efectivo' ? 'recibido' : 'pendiente_pago',
+      // El cobro de esta demo es simulado para todos los métodos; cocina
+      // debe recibir el pedido inmediatamente, igual que con efectivo.
+      estado: 'recibido',
       metodo_pago: b.metodo_pago,
+      estado_pago: 'aprobado',
       subtotal: b.subtotal,
       descuento: b.descuento,
       costo_domicilio: b.costo_domicilio,

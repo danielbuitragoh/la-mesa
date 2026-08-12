@@ -6,7 +6,7 @@ import { Isotipo } from '@/componentes/Anillo';
 import { Boton } from '@/componentes/Boton';
 import { Icono } from '@/componentes/Icono';
 import { LogoGoogle } from '@/componentes/LogoGoogle';
-import { usarSesion } from '@/estado/sesion';
+import { DEMO, usarSesion } from '@/estado/sesion';
 import { color, e, radio } from '@/tema/tokens';
 import { familia, texto, titulo } from '@/tema/tipografia';
 
@@ -16,7 +16,7 @@ import { familia, texto, titulo } from '@/tema/tipografia';
  */
 export default function Entrar() {
   const insets = useSafeAreaInsets();
-  const { entrarConCorreo, verificarCodigo, entrarConGoogle } = usarSesion();
+  const { entrarConCorreo, verificarCodigo, entrarConGoogle, entrarComoDemo } = usarSesion();
 
   const [paso, setPaso] = useState<'correo' | 'codigo'>('correo');
   const [correo, setCorreo] = useState('');
@@ -24,8 +24,18 @@ export default function Entrar() {
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const [cargandoGoogle, setCargandoGoogle] = useState(false);
+  const [cargandoDemo, setCargandoDemo] = useState(false);
 
   const correoValido = /^\S+@\S+\.\S+$/.test(correo.trim());
+
+  async function comoDemo() {
+    setCargandoDemo(true);
+    setError(null);
+    const r = await entrarComoDemo();
+    setCargandoDemo(false);
+    if (!r.ok) return setError(r.mensaje);
+    router.replace('/');
+  }
 
   async function conGoogle() {
     setCargandoGoogle(true);
@@ -68,15 +78,38 @@ export default function Entrar() {
         {paso === 'correo' ? (
           <>
             <Text style={titulo('h1')}>Tu mesa,{'\n'}tus momentos</Text>
-            <Text style={[texto.b1, { color: color.tinta60, marginTop: e.e3, marginBottom: e.e6 }]}>
-              Entra con tu correo y te mandamos un código de seis dígitos. Sin contraseñas.
+            <Text style={[texto.b1, { color: color.tinta60, marginTop: e.e3, marginBottom: e.e5 }]}>
+              Elige cómo entrar. Si solo vienes a mirar, usa la cuenta de demostración.
             </Text>
+
+            {/* Atajo de la demo: un desconocido tiene que poder pedir sin
+                registrarse. Va arriba y como acción principal a propósito. */}
+            <View style={s.demo}>
+              <Text style={[texto.caption, { color: color.naranjaTexto, letterSpacing: 1.4 }]}>
+                DEMO DE PORTAFOLIO
+              </Text>
+              <Text style={[texto.b2, { color: color.tinta60, marginTop: e.e2 }]}>
+                Entra sin registrarte y prueba el pedido completo.
+              </Text>
+              <Text style={[texto.b2, { color: color.carbon, fontFamily: familia.semibold, marginTop: e.e2 }]}>
+                {DEMO.correo} · {DEMO.clave}
+              </Text>
+              <Boton
+                bloque
+                cargando={cargandoDemo}
+                deshabilitado={cargando || cargandoGoogle}
+                estilo={{ marginTop: e.e3 }}
+                onPress={comoDemo}
+              >
+                Entrar como demo
+              </Boton>
+            </View>
 
             <Boton
               bloque
               variante="secundario"
               cargando={cargandoGoogle}
-              deshabilitado={cargando}
+              deshabilitado={cargando || cargandoDemo}
               izquierda={<LogoGoogle tamano={18} />}
               estilo={{ marginBottom: e.e4 }}
               onPress={conGoogle}
@@ -173,6 +206,14 @@ export default function Entrar() {
 }
 
 const s = StyleSheet.create({
+  demo: {
+    backgroundColor: color.crema,
+    borderRadius: radio.r4,
+    borderWidth: 1,
+    borderColor: color.naranjaSuave,
+    padding: e.e4,
+    marginBottom: e.e5,
+  },
   separador: {
     flexDirection: 'row',
     alignItems: 'center',

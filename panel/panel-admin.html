@@ -7,6 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Sin esto, window.supabase nunca existe y escucharPedidos() se corta en su
+     primera línea: el login y el listado por REST funcionan igual, pero
+     Realtime jamás llega a intentar conectarse. Faltaba, no estaba comentada. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* =====================================================================
    LA MESA · Panel de administración
@@ -323,8 +327,8 @@ svg{display:block}
    actualiza solo por Realtime — no hay que tocar nada más de este archivo.
    ===================================================================== */
 const SUPABASE = {
-  url: '',            // https://xxxxxxxx.supabase.co
-  anon: '',           // clave pública anon
+  url: 'https://ddtjbqqdbsevxxmxzjir.supabase.co',
+  anon: 'sb_publishable_rGuusUZrP3_FA_MJ49XdVA_7DWVBEBo',
   sede: '11111111-1111-1111-1111-111111111111',
 };
 const EN_VIVO = Boolean(SUPABASE.url && SUPABASE.anon);
@@ -412,6 +416,18 @@ let MENU = [
    d:'Brownie tibio con helado de vainilla y dos cucharas.',
    img:FOTO('https://images.pexels.com/photos/5386663/pexels-photo-5386663.jpeg?auto=compress&cs=tinysrgb&w=1200')},
 ];
+
+/* CATEGORIAS llega de Supabase en cargarMenu(); mapea id de categoría (uuid)
+   con la clave en minúsculas que usa el resto del panel ('hamburguesas', etc). */
+let CATEGORIAS = [];
+const categoriaId = (cat) => (CATEGORIAS.find(c => c.cat === cat) || {}).id;
+
+/* La base guarda varias etiquetas por plato (badges[]); el panel solo
+   muestra/edita una a la vez, así que usamos la primera que reconozca. */
+const MAPA_BADGE_DB = {exclusivo_app:'app', nuevo:'nuevo', popular:'popular'};
+const MAPA_BADGE_PANEL = {app:'exclusivo_app', nuevo:'nuevo', popular:'popular'};
+const badgeDesdeDb = (badges) => (badges || []).map(b => MAPA_BADGE_DB[b]).find(Boolean) || null;
+const badgeHaciaDb = (badge) => (badge && MAPA_BADGE_PANEL[badge]) ? [MAPA_BADGE_PANEL[badge]] : [];
 
 let CUPONES = [
   {id:'2X1MESA', t:'2x1 en Hamburguesas', d:'Pide dos y paga una. Todos los martes, solo desde la app.',
@@ -516,7 +532,7 @@ const ENCABEZADOS = {
   pedidos: () => `
     <div style="flex:1">
       <div class="h1">Pedidos de hoy</div>
-      <div class="sub">${PEDIDOS.filter(p => p.estado !== 'entregado').length} en curso ·
+      <div class="sub">${PEDIDOS.filter(p => !['entregado','cancelado'].includes(p.estado)).length} en curso ·
         ${PEDIDOS.filter(p => p.estado === 'entregado').length} entregados ·
         ${EN_VIVO ? 'conectado a Supabase' : 'datos de demostración'}</div>
     </div>
@@ -614,31 +630,31 @@ V.menu = () => `
         <tr class="${p.disp ? '' : 'off'}">
           <td>
             <button class="mini ${p.img ? '' : 'vacia'} ${p.img ? '' : 'f-' + p.cat}"
-              onclick="editorFoto(${p.id})" title="Cambiar la foto de ${p.n}">
+              onclick="editorFoto('${p.id}')" title="Cambiar la foto de ${p.n}">
               ${p.img ? `<img src="${p.img.url}" alt="" style="object-position:${p.img.x}% ${p.img.y}%;transform:scale(${p.img.z})">` : ''}
               <span class="lupa">${ico('i-camara', 18, '#fff', 2)}</span>
             </button>
           </td>
           <td>
             <input class="editable" style="font-weight:600" value="${p.n}"
-              onchange="editar(${p.id},'n',this.value)">
+              onchange="editar('${p.id}','n',this.value)">
             <input class="editable b2" style="color:var(--tinta-60)" value="${p.d}"
-              onchange="editar(${p.id},'d',this.value)">
+              onchange="editar('${p.id}','d',this.value)">
           </td>
           <td><span class="b2 muted" style="text-transform:capitalize">${p.cat}</span></td>
           <td><input class="editable precio" value="${p.p}" type="number" step="100"
-              onchange="editar(${p.id},'p',+this.value)"></td>
+              onchange="editar('${p.id}','p',+this.value)"></td>
           <td>${p.badge ? BADGES[p.badge] : '<span class="b2 faint">—</span>'}</td>
           <td>
             <button class="interruptor" style="background:none;padding:0;margin:0;width:auto"
-              onclick="alternarPlato(${p.id})">
+              onclick="alternarPlato('${p.id}')">
               <span class="palanca ${p.disp?'on':''}" style="background:${p.disp?'':'rgba(31,31,31,.16)'}"></span>
               <span class="b2" style="font-weight:600;color:${p.disp?'var(--teal)':'var(--tinta-40)'}">
                 ${p.disp ? 'Sí' : 'Agotado'}</span>
             </button>
           </td>
           <td><button class="btn btn-sm" style="color:var(--tinta-40);padding:0 8px"
-              onclick="borrarPlato(${p.id})" title="Quitar del menú">${ico('i-basura',17)}</button></td>
+              onclick="borrarPlato('${p.id}')" title="Quitar del menú">${ico('i-basura',17)}</button></td>
         </tr>`).join('')}
     </tbody>
   </table>
@@ -670,7 +686,7 @@ V.promos = () => `
 
 V.ventas = () => {
   const entregados = PEDIDOS.filter(p => p.estado === 'entregado');
-  const enCurso = PEDIDOS.filter(p => p.estado !== 'entregado');
+  const enCurso = PEDIDOS.filter(p => !['entregado','cancelado'].includes(p.estado));
   const vendido = entregados.reduce((t, p) => t + totalPedido(p), 0);
   const cuenta = {};
   PEDIDOS.forEach(p => p.items.forEach(i => cuenta[i.n] = (cuenta[i.n] || 0) + i.q));
@@ -747,6 +763,7 @@ async function intentarEntrar(){
   document.querySelector('.lateral').style.display = '';
   pintar();
   cargarPedidos();
+  cargarMenu();
   escucharPedidos();
 }
 
@@ -834,9 +851,23 @@ function editar(id, campo, valor){
   if (campo === 'p') pintar();
 }
 
-function borrarPlato(id){
+async function borrarPlato(id){
   const p = MENU.find(x => x.id === id);
   if (!confirm(`¿Quitar "${p.n}" del menú? Los pedidos que ya lo incluyen no se ven afectados.`)) return;
+
+  if (EN_VIVO){
+    const r = await fetch(`${SUPABASE.url}/rest/v1/productos?id=eq.${p.id}`, {
+      method:'DELETE', headers: cabecerasApi(true),
+    }).catch(() => null);
+    if (!r || !r.ok){
+      // La base protege pedido_items con RESTRICT: si el plato ya salió en
+      // algún pedido, borrarlo de verdad rompería ese historial. Se marca
+      // agotado en su lugar, que es lo que la app necesita de todas formas.
+      return avisar(r && r.status === 409
+        ? `"${p.n}" ya está en pedidos anteriores y no se puede borrar. Márcalo como agotado en su lugar.`
+        : 'No se pudo borrar el plato. Revisa la conexión.');
+    }
+  }
   MENU = MENU.filter(x => x.id !== id);
   avisar(`${p.n} salió del menú`);
   pintar();
@@ -895,21 +926,37 @@ function formProducto(){
   setTimeout(() => document.getElementById('fN').focus(), 60);
 }
 
-function guardarProducto(){
+async function guardarProducto(){
   const n = document.getElementById('fN').value.trim();
   const p = +document.getElementById('fP').value;
   if (!n || !p) return avisar('Falta el nombre o el precio para poder guardar');
-  const id = Math.max(0, ...MENU.map(m => m.id)) + 1;
-  MENU.push({
-    id, n, p,
-    cat: document.getElementById('fC').value,
-    d: document.getElementById('fD').value.trim() || 'Sin descripción todavía.',
-    badge: document.getElementById('fB').value || null,
-    disp: true, img: null,
-  });
+  const cat = document.getElementById('fC').value;
+  const d = document.getElementById('fD').value.trim() || 'Sin descripción todavía.';
+  const badge = document.getElementById('fB').value || null;
+
+  if (!EN_VIVO){
+    const id = Math.max(0, ...MENU.map(m => typeof m.id === 'number' ? m.id : 0)) + 1;
+    MENU.push({id, n, p, cat, d, badge, disp:true, img:null});
+    pintar();
+    avisar(`${n} ya está en el menú. Ahora ponle una foto.`);
+    return editorFoto(id);
+  }
+
+  const r = await fetch(`${SUPABASE.url}/rest/v1/productos`, {
+    method:'POST',
+    headers: {...cabecerasApi(true), Prefer:'return=representation'},
+    body: JSON.stringify({
+      nombre:n, precio:p, categoria_id: categoriaId(cat), descripcion:d,
+      badges: badgeHaciaDb(badge), disponible:true,
+    }),
+  }).catch(() => null);
+  if (!r || !r.ok) return avisar('No se pudo crear el plato. Revisa la conexión.');
+
+  const [creado] = await r.json();
+  MENU.push({id: creado.id, n, p, cat, d, badge, disp:true, img:null});
   pintar();
   avisar(`${n} ya está en el menú. Ahora ponle una foto.`);
-  editorFoto(id);   // el plato sin foto queda a medias: seguimos derecho al encuadre
+  editorFoto(creado.id);   // el plato sin foto queda a medias: seguimos derecho al encuadre
 }
 
 /* =====================================================================
@@ -950,7 +997,7 @@ function pintarEditorFoto(id){
 
       <label class="b2" style="font-weight:600;display:block;margin-bottom:var(--e2)">Acercar</label>
       <input class="deslizador" type="range" min="1" max="2.5" step="0.01" value="${f.z}"
-        oninput="zoomFoto(${id}, this.value)">
+        oninput="zoomFoto('${id}', this.value)">
 
       <div style="display:flex;align-items:center;gap:var(--e4);margin:var(--e5) 0;
         background:#fff;border-radius:var(--r3);padding:var(--e3) var(--e4)">
@@ -960,13 +1007,13 @@ function pintarEditorFoto(id){
       </div>
 
       <div style="display:flex;gap:var(--e2)">
-        <button class="btn btn-primario" style="flex:1" onclick="guardarFoto(${id})">Guardar foto</button>
-        <button class="btn btn-secundario" onclick="elegirArchivo(${id})">Cambiar</button>
+        <button class="btn btn-primario" style="flex:1" onclick="guardarFoto('${id}')">Guardar foto</button>
+        <button class="btn btn-secundario" onclick="elegirArchivo('${id}')">Cambiar</button>
         <button class="btn btn-linea" style="color:var(--rojo-texto);border-color:rgba(214,69,69,.3)"
-          onclick="quitarFoto(${id})">${ico('i-basura',17)}</button>
+          onclick="quitarFoto('${id}')">${ico('i-basura',17)}</button>
       </div>`
     : `
-      <div class="soltar" id="zona" onclick="elegirArchivo(${id})">
+      <div class="soltar" id="zona" onclick="elegirArchivo('${id}')">
         <div class="aro"></div>
         <div class="h3" style="margin-bottom:6px">Arrastra la foto aquí</div>
         <p class="b2 muted">O toca para buscarla en tu computador.<br>
@@ -978,7 +1025,7 @@ function pintarEditorFoto(id){
         Fotografía cálida, cercana y natural, con el plato bien iluminado y sin filtros fuertes —
         el tono visual de la marca. Una foto horizontal funciona mejor que una vertical.</p>`}
 
-    <input type="file" id="archivoFoto" accept="image/*" hidden onchange="tomarArchivo(event,${id})">`;
+    <input type="file" id="archivoFoto" accept="image/*" hidden onchange="tomarArchivo(event,'${id}')">`;
 
   if (f) prepararArrastre(id);
   else prepararSoltar(id);
@@ -1132,11 +1179,47 @@ async function guardarEstado(num, estado){
 }
 
 async function guardarPlato(p){
-  await fetch(`${SUPABASE.url}/rest/v1/productos?id=eq.${p.id}`, {
+  const r = await fetch(`${SUPABASE.url}/rest/v1/productos?id=eq.${p.id}`, {
     method:'PATCH',
     headers: cabecerasApi(true),
-    body: JSON.stringify({nombre:p.n, descripcion:p.d, precio:p.p, disponible:p.disp}),
-  }).catch(() => avisar('No se pudo guardar el plato. Revisa la conexión.'));
+    body: JSON.stringify({
+      nombre:p.n, descripcion:p.d, precio:p.p, disponible:p.disp,
+      categoria_id: categoriaId(p.cat), badges: badgeHaciaDb(p.badge),
+    }),
+  }).catch(() => null);
+  if (!r || !r.ok) avisar('No se pudo guardar el plato. Revisa la conexión.');
+}
+
+/* Trae el menú real de Supabase y reemplaza los datos de muestra.
+   Sin esto MENU se queda para siempre con la lista fija de aquí arriba,
+   que es justo lo que pasaba antes: se veía bien porque los nombres
+   coinciden con seed.sql, pero guardar fallaba porque los id (1, 2, 3…)
+   no son los uuid reales de la tabla productos. */
+async function cargarMenu(){
+  if (!EN_VIVO) return;
+  const [rCat, rProd] = await Promise.all([
+    fetch(`${SUPABASE.url}/rest/v1/categorias?select=id,nombre&order=orden`, {headers: cabecerasApi()}),
+    fetch(`${SUPABASE.url}/rest/v1/productos?select=id,categoria_id,nombre,descripcion,precio,imagen_url,badges,disponible&order=orden`, {headers: cabecerasApi()}),
+  ]).catch(() => []);
+  if (!rCat || !rProd || !rCat.ok || !rProd.ok) {
+    return avisar('No se pudo cargar el menú desde la base. Revisa la conexión.');
+  }
+  const categorias = await rCat.json();
+  CATEGORIAS = categorias.map(c => ({id: c.id, cat: c.nombre.toLowerCase()}));
+  const catDe = id => (CATEGORIAS.find(c => c.id === id) || {}).cat || CAT[0];
+
+  const productos = await rProd.json();
+  MENU = productos.map(p => ({
+    id: p.id,
+    cat: catDe(p.categoria_id),
+    n: p.nombre,
+    d: p.descripcion || 'Sin descripción todavía.',
+    p: Number(p.precio),
+    badge: badgeDesdeDb(p.badges),
+    disp: p.disponible,
+    img: p.imagen_url ? FOTO(p.imagen_url) : null,
+  }));
+  if (S.vista === 'menu') pintar();
 }
 
 /* Realtime: cada pedido nuevo entra al tablero sin recargar nada.
@@ -1144,6 +1227,10 @@ async function guardarPlato(p){
 function escucharPedidos(){
   if (!EN_VIVO || !window.supabase) return;
   const sb = window.supabase.createClient(SUPABASE.url, SUPABASE.anon);
+  // Realtime abre su propio socket: hereda la URL y la clave anónima, pero
+  // no el Bearer que usan las consultas REST. Sin este token, RLS no puede
+  // reconocer al miembro de cocina y no le entrega cambios de pedidos.
+  if (SESION?.access_token) sb.realtime.setAuth(SESION.access_token);
   sb.channel('pedidos-sede')
     .on('postgres_changes',
         {event:'INSERT', schema:'public', table:'pedidos', filter:`sede_id=eq.${SUPABASE.sede}`},
@@ -1185,7 +1272,7 @@ if (!EN_VIVO) setInterval(() => { if (Math.random() > .55) pedidoDePrueba(); }, 
 
 recuperarSesion();
 pintar();
-if (!EN_VIVO || SESION){ escucharPedidos(); cargarPedidos(); }
+if (!EN_VIVO || SESION){ escucharPedidos(); cargarPedidos(); cargarMenu(); }
 </script>
 </body>
 </html>
