@@ -374,6 +374,43 @@ function recuperarSesion() {
   } catch {}
 }
 
+/* El token de acceso dura ~1 hora. Sin esto, pasada esa hora cada llamada a
+   la base empieza a fallar en silencio y el tablero se queda pegado en lo
+   último que alcanzó a cargar, sin avisarle a cocina que tiene que volver
+   a entrar. asegurarSesion() se corre cada minuto (ver el reloj más abajo)
+   y renueva el token con el refresh_token ANTES de que venza; solo si esa
+   renovación falla mandamos a la persona de vuelta a la pantalla de login. */
+function sesionVencePronto(margenSeg = 120) {
+  if (!SESION?.expires_at) return false;
+  return (SESION.expires_at * 1000) < (Date.now() + margenSeg * 1000);
+}
+
+async function refrescarSesion() {
+  if (!SESION?.refresh_token) return false;
+  const r = await fetch(`${SUPABASE.url}/auth/v1/token?grant_type=refresh_token`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE.anon, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: SESION.refresh_token }),
+  }).catch(() => null);
+  if (!r || !r.ok) return false;
+  SESION = await r.json();
+  try { sessionStorage.setItem('lamesa_sesion', JSON.stringify(SESION)); } catch {}
+  if (CLIENTE_RT && SESION?.access_token) CLIENTE_RT.realtime.setAuth(SESION.access_token);
+  return true;
+}
+
+async function asegurarSesion() {
+  if (!EN_VIVO || !SESION) return;
+  if (!sesionVencePronto()) return;
+  const ok = await refrescarSesion();
+  if (!ok) {
+    SESION = null;
+    try { sessionStorage.removeItem('lamesa_sesion'); } catch {}
+    avisar('Tu sesión venció. Vuelve a entrar para seguir viendo los pedidos.');
+    pintar();
+  }
+}
+
 /* ---------------------------------------------------------------------
    Datos de demostración
    --------------------------------------------------------------------- */
@@ -1224,12 +1261,16 @@ async function cargarMenu(){
 
 /* Realtime: cada pedido nuevo entra al tablero sin recargar nada.
    Requiere <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"> */
+let CLIENTE_RT = null;
 function escucharPedidos(){
   if (!EN_VIVO || !window.supabase) return;
   const sb = window.supabase.createClient(SUPABASE.url, SUPABASE.anon);
+  CLIENTE_RT = sb;
   // Realtime abre su propio socket: hereda la URL y la clave anónima, pero
   // no el Bearer que usan las consultas REST. Sin este token, RLS no puede
   // reconocer al miembro de cocina y no le entrega cambios de pedidos.
+  // asegurarSesion() vuelve a llamar CLIENTE_RT.realtime.setAuth(...) cada
+  // vez que el token se renueva, para que este socket no se quede con uno vencido.
   if (SESION?.access_token) sb.realtime.setAuth(SESION.access_token);
   sb.channel('pedidos-sede')
     .on('postgres_changes',
@@ -1261,16 +1302,19 @@ async function cargarPedidos(){
   pintar();
 }
 
-/* El reloj de cada pedido corre solo: es lo que le dice a cocina qué se está demorando */
+/* El reloj de cada pedido corre solo: es lo que le dice a cocina qué se está demorando.
+   Aprovechamos el mismo minutero para revisar que la sesión siga viva. */
 setInterval(() => {
   PEDIDOS.forEach(p => { if (p.estado !== 'entregado') p.min++; });
   if (S.vista === 'pedidos') pintar();
+  asegurarSesion();
 }, 60000);
 
 /* En demostración entra un pedido de vez en cuando para que el tablero respire */
 if (!EN_VIVO) setInterval(() => { if (Math.random() > .55) pedidoDePrueba(); }, 45000);
 
 recuperarSesion();
+asegurarSesion();
 pintar();
 if (!EN_VIVO || SESION){ escucharPedidos(); cargarPedidos(); cargarMenu(); }
 </script>
