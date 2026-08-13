@@ -21,20 +21,20 @@
 <div class="estado" id="estado">Cargando La Mesa…</div>
 <script>
 (function () {
-  // GitHub Pages solo sirve este archivo como pagina de error para rutas
-  // que no existen como archivo fisico -por ejemplo /la-mesa/app-web/carrito
-  // o /la-mesa/app-web/pedido/8, que solo existen del lado del cliente-.
-  // Como app-web/ es una sola pagina (Expo Router en modo "single"), aca
-  // traemos el index.html real de la app -el que si existe- y lo ponemos
+  // GitHub Pages solo sirve este archivo como página de error para rutas
+  // que no existen como archivo físico —por ejemplo /la-mesa/app-web/carrito
+  // o /la-mesa/app-web/pedido/8, que solo existen del lado del cliente—.
+  // Como app-web/ es una sola página (Expo Router en modo "single"), acá
+  // traemos el index.html real de la app —el que sí existe— y lo ponemos
   // en este mismo documento sin cambiar la URL de la barra de direcciones.
-  // Asi Expo Router arranca, lee la ruta que se pidio y muestra la pantalla
-  // correcta en vez del 404 generico de GitHub.
+  // Así Expo Router arranca, lee la ruta que se pidió y muestra la pantalla
+  // correcta en vez del 404 genérico de GitHub.
   var BASE = '/la-mesa/app-web/';
   var esRutaDeLaApp = location.pathname.indexOf(BASE) === 0;
   var estado = document.getElementById('estado');
 
   if (!esRutaDeLaApp) {
-    estado.innerHTML = 'Esta pagina no existe. <a href="/la-mesa/">Volver al inicio</a>';
+    estado.innerHTML = 'Esta página no existe. <a href="/la-mesa/">Volver al inicio</a>';
   } else {
     fetch(BASE + 'index.html')
       .then(function (r) {
