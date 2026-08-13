@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+<title>La Mesa</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #FFF6ED; }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #2B2118;
+  }
+  .estado { text-align: center; padding: 0 24px; }
+  .estado a { color: #F26B1F; }
+</style>
+</head>
+<body>
+<div class="estado" id="estado">Cargando La Mesa…</div>
+<script>
+(function () {
+  // GitHub Pages solo sirve este archivo como pagina de error para rutas
+  // que no existen como archivo fisico -por ejemplo /la-mesa/app-web/carrito
+  // o /la-mesa/app-web/pedido/8, que solo existen del lado del cliente-.
+  // Como app-web/ es una sola pagina (Expo Router en modo "single"), aca
+  // traemos el index.html real de la app -el que si existe- y lo ponemos
+  // en este mismo documento sin cambiar la URL de la barra de direcciones.
+  // Asi Expo Router arranca, lee la ruta que se pidio y muestra la pantalla
+  // correcta en vez del 404 generico de GitHub.
+  var BASE = '/la-mesa/app-web/';
+  var esRutaDeLaApp = location.pathname.indexOf(BASE) === 0;
+  var estado = document.getElementById('estado');
+
+  if (!esRutaDeLaApp) {
+    estado.innerHTML = 'Esta pagina no existe. <a href="/la-mesa/">Volver al inicio</a>';
+  } else {
+    fetch(BASE + 'index.html')
+      .then(function (r) {
+        if (!r.ok) throw new Error('no se pudo cargar la app');
+        return r.text();
+      })
+      .then(function (html) {
+        document.open();
+        document.write(html);
+        document.close();
+      })
+      .catch(function () {
+        estado.innerHTML = 'No pudimos cargar la app. <a href="' + BASE + '">Entrar desde el inicio</a>';
+      });
+  }
+})();
+</script>
+</body>
+</html>
