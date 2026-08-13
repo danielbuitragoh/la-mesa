@@ -10,7 +10,7 @@
 
 ![La Mesa · app móvil](docs/capturas/portada-app.png)
 
-[**Ver la app**](https://daniel-debug-java.github.io/la-mesa/prototipo/la-mesa-app.html) · [**Ver el panel de cocina**](https://daniel-debug-java.github.io/la-mesa/panel/panel-admin.html) · [Cómo se construyó](docs/BRIEF.md)
+[**Ver la app**](https://daniel-debug-java.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://daniel-debug-java.github.io/la-mesa/panel/panel-admin.html) · [Ver el prototipo](https://daniel-debug-java.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
 
 </div>
 
@@ -22,7 +22,7 @@ Un proyecto personal donde diseñé y construí el sistema completo que necesita
 
 La marca —identidad visual, tono, nombre— es ficticia y la creé para el proyecto. El punto no es el restaurante: es mostrar cómo llevo algo desde una imagen de design system hasta un sistema que compila, se verifica solo y se puede desplegar.
 
-**Los dos enlaces de arriba funcionan.** No son videos ni mockups: son la app y el panel corriendo en el navegador con datos de demostración. Se pueden tocar.
+**Los enlaces de arriba funcionan.** No son videos ni mockups: la app y el panel corren en el navegador contra el backend real, con datos de demostración. El prototipo es un recorrido visual sin backend, para navegarlo más rápido. Se pueden tocar.
 
 ## Lo que más me interesa que se mire
 

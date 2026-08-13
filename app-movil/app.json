@@ -44,7 +44,7 @@
         }
       ]
     ],
-    "experiments": { "typedRoutes": true },
+    "experiments": { "typedRoutes": true, "baseUrl": "/la-mesa/app-web" },
     "extra": {
       "eas": { "projectId": "" }
     }
