@@ -119,6 +119,8 @@ El acceso con Google está implementado de verdad (Supabase Auth, flujo PKCE), p
 
 Canela, la tipografía de títulos del design system, es comercial y requiere licencia. El código la pide primero y cae a una sustituta parecida si no está, así que el proyecto corre sin comprar nada y adopta la real copiando dos archivos.
 
+La app web (`app-web/`) funciona bien navegando desde adentro, pero si alguien entra por un enlace directo a una subruta —por ejemplo `/app-web/carrito`— o refresca la página estando ahí, ve la página 404 genérica de GitHub en vez de la app. GitHub Pages solo usa un `404.html` como redirección automática si vive en la raíz real del sitio, no dentro de una subcarpeta, así que esto queda pendiente de resolver.
+
 ---
 
 <details>
