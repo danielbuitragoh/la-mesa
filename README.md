@@ -6,11 +6,11 @@
 
 *Donde todo se comparte*
 
-[![Verificar](https://github.com/Daniel-debug-java/la-mesa/actions/workflows/verificar.yml/badge.svg)](https://github.com/Daniel-debug-java/la-mesa/actions/workflows/verificar.yml)
+[![Verificar](https://github.com/danielbuitragoh/la-mesa/actions/workflows/verificar.yml/badge.svg)](https://github.com/danielbuitragoh/la-mesa/actions/workflows/verificar.yml)
 
 ![La Mesa · app móvil](docs/capturas/portada-app.png)
 
-[**Ver la app**](https://daniel-debug-java.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://daniel-debug-java.github.io/la-mesa/panel/panel-admin.html) · [Ver el prototipo](https://daniel-debug-java.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
+[**Ver la app**](https://danielbuitragoh.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://danielbuitragoh.github.io/la-mesa/panel/panel-admin.html) · [Ver el prototipo](https://danielbuitragoh.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
 
 </div>
 
