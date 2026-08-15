@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Boton } from '@/componentes/Boton';
@@ -10,8 +10,10 @@ import { crearPedido } from '@/datos/pedidos';
 import { registrarNotificaciones } from '@/datos/notificaciones';
 import { usarCarrito } from '@/estado/carrito';
 import { usarDirecciones } from '@/estado/direcciones';
+import { usarSesion } from '@/estado/sesion';
 import { color, e, radio, sombra } from '@/tema/tokens';
 import { familia, texto, titulo } from '@/tema/tipografia';
+import { alertar } from '@/utils/alerta';
 import { pesos } from '@/utils/formato';
 
 export default function Checkout() {
@@ -22,10 +24,23 @@ export default function Checkout() {
   const direcciones = usarDirecciones((s) => s.direcciones);
   const cargarDirecciones = usarDirecciones((s) => s.cargar);
   const principal = usarDirecciones((s) => s.principal());
+  const autenticado = usarSesion((s) => s.autenticado);
 
   useEffect(() => {
     if (!direcciones.length) cargarDirecciones();
   }, [direcciones.length, cargarDirecciones]);
+
+  /**
+   * Pagar exige sesión: crearPedido() la necesita para el insert (RLS) y,
+   * sin ella, devuelve null sin avisar nada visible. Antes de este fix,
+   * alguien sin sesión (por ejemplo, un desconocido en incógnito) llegaba
+   * hasta el botón de pago y no pasaba nada al tocarlo. Se manda a entrar
+   * antes de que eso pueda ocurrir.
+   */
+  useEffect(() => {
+    if (!autenticado) router.replace('/entrar');
+  }, [autenticado]);
+
   const subtotal = usarCarrito((s) => s.subtotal());
   const descuento = usarCarrito((s) => s.descuento());
   const envio = usarCarrito((s) => s.envio());
@@ -48,7 +63,7 @@ export default function Checkout() {
       });
 
       if (!pedido) {
-        Alert.alert(
+        alertar(
           'No pudimos crear el pedido',
           'Revisa tu conexión e intenta de nuevo. No se te cobró nada.',
         );
@@ -59,18 +74,18 @@ export default function Checkout() {
       const resultado = await cobrar(pedido);
 
       if (resultado.estado === 'error') {
-        Alert.alert('No se pudo completar el pago', resultado.mensaje);
+        alertar('No se pudo completar el pago', resultado.mensaje);
         return;
       }
       if (resultado.estado === 'cancelado') {
-        Alert.alert(
+        alertar(
           'Pago sin terminar',
           'Cerraste la pasarela antes de pagar. Tu pedido quedó guardado; puedes intentarlo otra vez.',
         );
         return;
       }
       if (resultado.estado === 'pendiente') {
-        Alert.alert(
+        alertar(
           'Estamos confirmando tu pago',
           'El banco se está demorando en responder. Te avisamos apenas quede listo.',
         );
@@ -85,6 +100,8 @@ export default function Checkout() {
       setPagando(false);
     }
   }
+
+  if (!autenticado) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: color.marfil, paddingTop: insets.top }}>
