@@ -34,6 +34,26 @@ jobs:
         working-directory: app-movil
         run: npx expo export --platform android --output-dir /tmp/bundle
 
+  web:
+    name: App web · el build que se despliega en app-web/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app-movil/package-lock.json
+
+      - name: Instalar dependencias
+        working-directory: app-movil
+        run: npm ci --legacy-peer-deps
+
+      - name: El build web (el mismo comando que genera app-web/) resuelve entero
+        working-directory: app-movil
+        run: npx expo export --platform web --output-dir /tmp/bundle-web
+
   calidad:
     name: Contraste y firmas de pago
     runs-on: ubuntu-latest
