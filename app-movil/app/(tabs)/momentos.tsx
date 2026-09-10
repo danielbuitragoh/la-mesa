@@ -39,6 +39,36 @@ const SEMILLA = [
   },
 ];
 
+/**
+ * De qué categoría es un momento, a partir de lo que se pidió.
+ *
+ * Antes todas las tarjetas de pedidos reales decían 'hamburguesas', así que
+ * salían todas del mismo color aunque el pedido fuera otra cosa. El color de
+ * la tarjeta es lo primero que se ve: si no dice la verdad, mejor que no
+ * pretenda decir nada.
+ *
+ * Se mira el nombre de los platos porque es lo que trae el pedido. El día que
+ * `pedido_items` incluya la categoría de verdad, esto se cambia por ese dato
+ * y se borra el mapa.
+ */
+const PALABRAS: Record<string, string[]> = {
+  parrilla: ['anca', 'churrasco', 'costilla', 'lomo', 'carne', 'parrilla', 'pollo'],
+  bowls: ['bowl', 'ensalada', 'poke', 'verde'],
+  bebidas: ['limonada', 'jugo', 'café', 'cafe', 'gaseosa', 'agua', 'malteada', 'cerveza'],
+  postres: ['brownie', 'postre', 'helado', 'torta', 'cheesecake'],
+  hamburguesas: ['hamburguesa', 'burger', 'clásica', 'clasica'],
+};
+
+function categoriaDe(nombres: string[]): string {
+  const texto = nombres.join(' ').toLowerCase();
+  // El orden importa: se devuelve la primera que aparezca en el pedido, y
+  // 'hamburguesas' queda de último para que no gane por ser el respaldo.
+  for (const categoria of ['parrilla', 'bowls', 'postres', 'bebidas', 'hamburguesas']) {
+    if (PALABRAS[categoria].some((palabra) => texto.includes(palabra))) return categoria;
+  }
+  return 'hamburguesas';
+}
+
 export default function Momentos() {
   const insets = useSafeAreaInsets();
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -50,14 +80,17 @@ export default function Momentos() {
   const entregados = pedidos.filter((p) => p.estado === 'entregado');
 
   const tarjetas = entregados.length
-    ? entregados.map((p) => ({
-        id: p.id,
-        titulo: p.modalidad === 'domicilio' ? 'En casa' : 'En La Mesa',
-        fecha: fechaLarga(p.creado_en),
-        categoria: 'hamburguesas',
-        gente: ['Daniel'],
-        nota: (p.pedido_items ?? []).map((i) => `${i.cantidad} · ${i.nombre}`).join(' · '),
-      }))
+    ? entregados.map((p) => {
+        const nombres = (p.pedido_items ?? []).map((i) => i.nombre);
+        return {
+          id: p.id,
+          titulo: p.modalidad === 'domicilio' ? 'En casa' : 'En La Mesa',
+          fecha: fechaLarga(p.creado_en),
+          categoria: categoriaDe(nombres),
+          gente: ['Daniel'],
+          nota: (p.pedido_items ?? []).map((i) => `${i.cantidad} · ${i.nombre}`).join(' · '),
+        };
+      })
     : SEMILLA;
 
   return (
