@@ -117,13 +117,6 @@ La asignación de mensajero es manual desde el panel, no por API.
 
 Las notificaciones tienen dos categorías —pedidos y promociones— que la persona activa o apaga desde Perfil, pero ese filtro hoy solo vive en el teléfono: el servidor todavía manda ambas al mismo token, no separa por categoría al enviar.
 
-Las fotos de los diez platos son reales, de un banco de imágenes de licencia libre ([Pexels](https://www.pexels.com)), no del restaurante —eso necesita una sesión de fotos, no código—, pero ya no son marcadores de posición: se ve la carta como se vería en producción.
-
-El acceso con Google está implementado de verdad (Supabase Auth, flujo PKCE), pero solo funciona con un backend propio conectado, porque requiere credenciales de Google Cloud que cada quien crea con su propia cuenta. Los pasos de activación están en [`app-movil/README.md`](app-movil/README.md).
-
-Canela, la tipografía de títulos del design system, es comercial y requiere licencia. El código la pide primero y cae a una sustituta parecida si no está, así que el proyecto corre sin comprar nada y adopta la real copiando dos archivos.
-
-La app web (`app-web/`) funciona bien navegando desde adentro, pero si alguien entra por un enlace directo a una subruta —por ejemplo `/app-web/carrito`— o refresca la página estando ahí, ve la página 404 genérica de GitHub en vez de la app. GitHub Pages solo usa un `404.html` como redirección automática si vive en la raíz real del sitio, no dentro de una subcarpeta, así que esto queda pendiente de resolver.
 
 ---
 
