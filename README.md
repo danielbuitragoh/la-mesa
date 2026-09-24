@@ -14,8 +14,7 @@ https://github.com/user-attachments/assets/d4c05a5d-8539-47e2-9d4d-f704e5015a48
 
 [**Ver la app**](https://danielbuitragoh.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://danielbuitragoh.github.io/la-mesa/panel/panel-admin.html) · [Ver el prototipo](https://danielbuitragoh.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
 
-🎨 **Dirección creativa:** [Gabriela Chávez](https://www.instagram.com/gabrielae.cc)
-
+🎨 **Dirección creativa:** [Gabriela Chávez Castellano](https://www.instagram.com/gabrielae.cc)
 </div>
 
 ---
