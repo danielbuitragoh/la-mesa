@@ -8,7 +8,7 @@
 
 [![Verificar](https://github.com/danielbuitragoh/la-mesa/actions/workflows/verificar.yml/badge.svg)](https://github.com/danielbuitragoh/la-mesa/actions/workflows/verificar.yml)
 
-[**Ver la app**](https://danielbuitragoh.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://danielbuitragoh.github.io/la-mesa/panel/panel-admin.html) · [Ver el prototipo](https://danielbuitragoh.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
+[**Ver la app**](https://danielbuitragoh.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://danielbuitragoh.github.io/la-mesa/panel/panel-admin.html?demo) · [Ver el prototipo](https://danielbuitragoh.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
 
 https://github.com/user-attachments/assets/d4c05a5d-8539-47e2-9d4d-f704e5015a48
 
@@ -26,6 +26,8 @@ Un proyecto personal donde diseñé y construí el sistema completo que necesita
 La marca —identidad visual, tono, nombre— es ficticia y la creé para el proyecto. El punto no es el restaurante: es mostrar cómo llevo algo desde una imagen de design system hasta un sistema que compila, se verifica solo y se puede desplegar.
 
 **Los enlaces de arriba funcionan.** No son videos ni mockups: la app y el panel corren en el navegador contra el backend real, con datos de demostración. El prototipo es un recorrido visual sin backend, para navegarlo más rápido. Se pueden tocar.
+
+**El panel entra solo** con una cuenta de cocina de demostración (`cocina@lamesa.co` / `lamesa2026`). Ve los mismos pedidos que el equipo real, pero es de solo lectura, y no porque la interfaz lo esconda: en la base tiene `es_demo = true` y todas las políticas de escritura del equipo exigen `es_staff_editor()`, que la excluye. Como esas credenciales son públicas, cada cuenta está limitada a 1 pedido por minuto y 5 por hora con un trigger en la base, no en la app. Todo está en [`supabase/cuenta-demo.sql`](supabase/cuenta-demo.sql).
 
 ## Lo que más me interesa que se mire
 
@@ -126,7 +128,7 @@ Las notificaciones tienen dos categorías —pedidos y promociones— que la per
 
 Built as a personal project. The brand is fictional and I designed it for this — the point is showing how I take something from a design system image to a system that compiles, verifies itself, and can be deployed.
 
-Both demo links at the top are live and interactive, running on demo data. Highlights: a shared-table feature where several people build one order from their own phones; a category picker shaped like a turntable you actually spin with your finger; server-side payment signing where the amount is never trusted from the client; and two checkers I wrote for this project — one that measures the brand palette against WCAG AA, and one that fails the build if the code queries a table, column or state the schema doesn't have.
+Both demo links at the top are live and interactive, running on demo data. The kitchen panel signs in by itself with a read-only demo account enforced by row-level security, and order creation is rate-limited in the database. Highlights: a shared-table feature where several people build one order from their own phones; a category picker shaped like a turntable you actually spin with your finger; server-side payment signing where the amount is never trusted from the client; and two checkers I wrote for this project — one that measures the brand palette against WCAG AA, and one that fails the build if the code queries a table, column or state the schema doesn't have.
 
 Code and comments are in Spanish — it's a Colombian brand and the team maintaining it would speak Spanish.
 

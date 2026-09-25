@@ -235,6 +235,17 @@ svg{display:block}
   padding:var(--e6);box-shadow:var(--s-fuerte);transform:translateY(14px);transition:.24s cubic-bezier(.2,.9,.3,1)}
 .telon.ver .modal{transform:none}
 .campo{margin-bottom:var(--e4)}
+/* Cuenta demo de portafolio: una franja fija que deja claro que nada se guarda */
+.banda-demo{display:flex;align-items:center;gap:var(--e3);flex-wrap:wrap;margin:var(--e4) var(--e6) 0;
+  padding:10px var(--e4);border-radius:var(--r3);background:var(--crema);border:1.5px solid rgba(242,107,31,.35);
+  font-size:13px;line-height:1.45}
+.banda-demo[hidden]{display:none}
+.banda-demo b{color:var(--naranja-texto)}
+.banda-demo button{margin-left:auto;background:none;border:0;padding:0;font:inherit;font-weight:600;
+  color:var(--naranja-texto);text-decoration:underline;cursor:pointer}
+.acceso-demo{background:var(--crema);border:1.5px solid rgba(242,107,31,.35);border-radius:var(--r4);
+  padding:var(--e5);margin-bottom:var(--e6)}
+.acceso-demo .cred{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;margin:var(--e3) 0 var(--e4)}
 .campo label{display:block;font-size:12px;font-weight:600;margin-bottom:6px}
 .campo input,.campo select,.campo textarea{width:100%;height:44px;padding:0 var(--e3);border:1.5px solid var(--linea);
   border-radius:var(--r3);background:#fff;font-size:14px}
@@ -310,6 +321,11 @@ svg{display:block}
 </aside>
 
 <main class="principal">
+  <div class="banda-demo" id="bandaDemo" hidden>
+    <span><b>Cuenta demo · solo lectura.</b> Ves los pedidos y el menú reales del restaurante.
+      Puedes tocar todo, pero los cambios solo se ven en tu pantalla: la base de datos los rechaza.</span>
+    <button onclick="salir()">Entrar con otra cuenta</button>
+  </div>
   <header class="encabezado" id="encabezado"></header>
   <div class="contenido" id="contenido"></div>
 </main>
@@ -343,6 +359,18 @@ const EN_VIVO = Boolean(SUPABASE.url && SUPABASE.anon);
  * reglas de seguridad de la base.
  */
 let SESION = null;
+
+/* Cuenta de portafolio. Sus credenciales son públicas a propósito: en la base
+   tiene perfiles.es_demo = true, y las políticas de escritura exigen
+   es_staff_editor(), que la excluye. Puede VER todo lo que ve cocina, pero
+   la base le rechaza cualquier cambio aunque alguien llame a la API a mano.
+   El panel además no intenta escribir con ella, para no mostrar un cambio
+   que en realidad no se guardó. Entrada directa: panel-admin.html?demo */
+const DEMO = { correo: 'cocina@lamesa.co', clave: 'lamesa2026' };
+const esDemo = () => SESION?.user?.email === DEMO.correo;
+/** Solo escribimos en la base con una sesión real del equipo */
+const escribe = () => EN_VIVO && !esDemo();
+const enDemo = txt => esDemo() ? `${txt} · Demo: solo en tu pantalla.` : txt;
 
 function cabecerasApi(json = false) {
   const h = {
@@ -619,6 +647,15 @@ V.pedidos = () => `
     }).join('')}
   </div>`;
 
+/* Minutos para cocina; horas o días si el pedido es viejo. La base de demo
+   tiene pedidos de hace semanas y "57087 min" parecía un error del panel. */
+function tiempo(m){
+  if (m < 60) return `${m} min`;
+  if (m < 1440) return `${Math.floor(m / 60)} h ${m % 60} min`;
+  const d = Math.floor(m / 1440);
+  return `${d} ${d === 1 ? 'día' : 'días'}`;
+}
+
 function tarjetaPedido(p, e){
   const clase = p.min >= 18 ? 'tarde' : p.min >= 10 ? 'tibio' : '';
   return `<article class="pedido ${S.nuevos.has(p.num) ? 'nuevo' : ''}" style="border-left-color:${e.col}">
@@ -626,7 +663,7 @@ function tarjetaPedido(p, e){
       <span class="num">#${p.num}</span>
       <span class="modo modo-${p.modo}">${ico(p.modo === 'recoger' ? 'i-bolsa' : 'i-moto', 13, 'currentColor', 2.1)}
         ${p.modo === 'recoger' ? 'Recoge' : 'Domicilio'}</span>
-      <span class="reloj ${clase}">${p.min} min</span>
+      <span class="reloj ${clase}">${tiempo(p.min)}</span>
     </div>
     <div class="quien">${p.quien}</div>
     <ul>
@@ -775,16 +812,23 @@ function pantallaEntrar(){
       <p class="b1 muted" style="margin-bottom:var(--e5)">
         Entra con la cuenta que te dieron en el restaurante.</p>
 
+      <div class="acceso-demo">
+        <div class="b1" style="font-weight:700">¿Vienes del portafolio?</div>
+        <p class="b2 muted" style="margin-top:var(--e1)">Entra con la cuenta de cocina de demostración:
+          ves los pedidos reales, pero es de solo lectura.</p>
+        <div class="cred">${DEMO.correo}<br>${DEMO.clave}</div>
+        <button class="btn btn-primario" style="width:100%" onclick="entrarDemo()">Entrar como demo</button>
+      </div>
+
       <div class="campo"><label>Correo</label>
         <input id="eCorreo" type="email" autocomplete="username" placeholder="cocina@lamesa.co"></div>
       <div class="campo"><label>Contraseña</label>
         <input id="eClave" type="password" autocomplete="current-password" placeholder="••••••••"></div>
       <p id="eError" class="b2" style="color:var(--rojo-texto);margin-bottom:var(--e3);display:none"></p>
-      <button class="btn btn-primario" style="width:100%" onclick="intentarEntrar()">Entrar al panel</button>
+      <button class="btn btn-secundario" style="width:100%" onclick="intentarEntrar()">Entrar al panel</button>
     </div>`;
   document.getElementById('eClave')
     .addEventListener('keydown', ev => { if (ev.key === 'Enter') intentarEntrar(); });
-  document.getElementById('eCorreo').focus();
 }
 
 async function intentarEntrar(){
@@ -796,7 +840,20 @@ async function intentarEntrar(){
   }
   const r = await entrarComoStaff(correo, clave);
   if (!r.ok){ err.textContent = r.mensaje; err.style.display = 'block'; return; }
+  alEntrar();
+}
 
+async function entrarDemo(){
+  const r = await entrarComoStaff(DEMO.correo, DEMO.clave);
+  if (!r.ok){
+    const err = document.getElementById('eError');
+    if (err){ err.textContent = 'No se pudo entrar con la cuenta demo. Prueba de nuevo en un momento.'; err.style.display = 'block'; }
+    return;
+  }
+  alEntrar();
+}
+
+function alEntrar(){
   document.querySelector('.lateral').style.display = '';
   pintar();
   cargarPedidos();
@@ -804,7 +861,14 @@ async function intentarEntrar(){
   escucharPedidos();
 }
 
+function salir(){
+  SESION = null;
+  try { sessionStorage.removeItem('lamesa_sesion'); } catch {}
+  pintar();
+}
+
 function pintar(){
+  document.getElementById('bandaDemo').hidden = !esDemo();
   if (EN_VIVO && !SESION) return pantallaEntrar();
   document.getElementById('nav').innerHTML = VISTAS.map(v => {
     const pend = v.id === 'pedidos' ? PEDIDOS.filter(p => p.estado === 'recibido').length : 0;
@@ -844,8 +908,10 @@ function avanzar(num){
     en_camino:'va en camino',
     entregado:'quedó entregado',
   };
-  avisar(`Pedido #${num} ${rotulo[p.estado]}. El cliente ya lo ve en su app.`);
-  if (EN_VIVO) guardarEstado(num, p.estado);
+  avisar(esDemo()
+    ? `Pedido #${num} ${rotulo[p.estado]}. Demo: solo en tu pantalla, el cliente no lo ve.`
+    : `Pedido #${num} ${rotulo[p.estado]}. El cliente ya lo ve en su app.`);
+  if (escribe()) guardarEstado(num, p.estado);
   pintar();
 }
 
@@ -875,16 +941,16 @@ function pedidoDePrueba(){
 function alternarPlato(id){
   const p = MENU.find(x => x.id === id);
   p.disp = !p.disp;
-  avisar(p.disp ? `${p.n} vuelve al menú` : `${p.n} se marcó como agotado y desapareció de la app`);
-  if (EN_VIVO) guardarPlato(p);
+  avisar(enDemo(p.disp ? `${p.n} vuelve al menú` : `${p.n} se marcó como agotado y desapareció de la app`));
+  if (escribe()) guardarPlato(p);
   pintar();
 }
 
 function editar(id, campo, valor){
   const p = MENU.find(x => x.id === id);
   p[campo] = valor;
-  avisar(campo === 'p' ? `${p.n} ahora cuesta ${cop(valor)}` : `${p.n} actualizado`);
-  if (EN_VIVO) guardarPlato(p);
+  avisar(enDemo(campo === 'p' ? `${p.n} ahora cuesta ${cop(valor)}` : `${p.n} actualizado`));
+  if (escribe()) guardarPlato(p);
   if (campo === 'p') pintar();
 }
 
@@ -892,7 +958,7 @@ async function borrarPlato(id){
   const p = MENU.find(x => x.id === id);
   if (!confirm(`¿Quitar "${p.n}" del menú? Los pedidos que ya lo incluyen no se ven afectados.`)) return;
 
-  if (EN_VIVO){
+  if (escribe()){
     const r = await fetch(`${SUPABASE.url}/rest/v1/productos?id=eq.${p.id}`, {
       method:'DELETE', headers: cabecerasApi(true),
     }).catch(() => null);
@@ -906,7 +972,7 @@ async function borrarPlato(id){
     }
   }
   MENU = MENU.filter(x => x.id !== id);
-  avisar(`${p.n} salió del menú`);
+  avisar(enDemo(`${p.n} salió del menú`));
   pintar();
 }
 
@@ -971,11 +1037,11 @@ async function guardarProducto(){
   const d = document.getElementById('fD').value.trim() || 'Sin descripción todavía.';
   const badge = document.getElementById('fB').value || null;
 
-  if (!EN_VIVO){
+  if (!escribe()){
     const id = Math.max(0, ...MENU.map(m => typeof m.id === 'number' ? m.id : 0)) + 1;
     MENU.push({id, n, p, cat, d, badge, disp:true, img:null});
     pintar();
-    avisar(`${n} ya está en el menú. Ahora ponle una foto.`);
+    avisar(enDemo(`${n} ya está en el menú. Ahora ponle una foto.`));
     return editorFoto(id);
   }
 
@@ -1148,12 +1214,12 @@ async function guardarFoto(id){
   const p = MENU.find(x => x.id === id);
   cerrarModal();
   pintar();
-  if (EN_VIVO && p.img && p.img.archivo){
+  if (escribe() && p.img && p.img.archivo){
     avisar('Subiendo la foto…');
     const url = await subirImagen(p.img.archivo, p.id);
     if (url){ p.img.url = url; delete p.img.archivo; guardarPlato(p); avisar(`Foto de ${p.n} publicada en la app`); }
   } else {
-    avisar(`Foto de ${p.n} guardada`);
+    avisar(enDemo(`Foto de ${p.n} guardada`));
   }
 }
 
@@ -1317,6 +1383,8 @@ recuperarSesion();
 asegurarSesion();
 pintar();
 if (!EN_VIVO || SESION){ escucharPedidos(); cargarPedidos(); cargarMenu(); }
+// Enlace del portafolio (panel-admin.html?demo): entra solo, sin formulario
+else if (new URLSearchParams(location.search).has('demo')) entrarDemo();
 </script>
 </body>
 </html>
