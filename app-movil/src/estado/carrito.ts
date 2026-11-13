@@ -63,6 +63,7 @@ export const usarCarrito = create<EstadoCarrito>((set, get) => ({
           {
             clave,
             producto_id: producto.id,
+            categoria_id: producto.categoria_id,
             nombre: producto.nombre,
             imagen_url: producto.imagen_url,
             precio_unitario: producto.precio + extra,
@@ -105,10 +106,12 @@ export const usarCarrito = create<EstadoCarrito>((set, get) => ({
       case 'monto_fijo':
         return Math.min(sub, cupon.valor);
       case 'dos_por_uno': {
-        // El más barato de cada par sale gratis, dentro de la categoría del cupón
-        const elegibles = lineas.flatMap((l) =>
-          Array<number>(l.cantidad).fill(l.precio_unitario),
-        );
+        // De cada par, el más barato sale gratis. Si el cupón es de una
+        // categoría, solo cuentan sus platos: es la misma cuenta que hace
+        // la base al guardar el pedido (supabase/endurecimiento.sql).
+        const elegibles = lineas
+          .filter((l) => !cupon.categoria_id || l.categoria_id === cupon.categoria_id)
+          .flatMap((l) => Array<number>(l.cantidad).fill(l.precio_unitario));
         elegibles.sort((a, b) => a - b);
         let libre = 0;
         for (let i = 0; i + 1 < elegibles.length; i += 2) libre += elegibles[i];
