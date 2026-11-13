@@ -10,9 +10,9 @@
 
 [**Ver la app**](https://danielbuitragoh.github.io/la-mesa/app-web/) · [**Ver el panel de cocina**](https://danielbuitragoh.github.io/la-mesa/panel/panel-admin.html?demo) · [Ver el prototipo](https://danielbuitragoh.github.io/la-mesa/prototipo/la-mesa-app.html) · [Cómo se construyó](docs/BRIEF.md)
 
-https://github.com/user-attachments/assets/d4c05a5d-8539-47e2-9d4d-f704e5015a48
+[![La Mesa · la app, el tablero de cocina y lo que comprueba la base](docs/capturas/portada.png)](https://danielbuitragoh.github.io/la-mesa/#video)
 
-![La Mesa · app móvil](docs/capturas/portada-app.png)
+<sub>▶ El vídeo de un minuto está en [la página del proyecto](https://danielbuitragoh.github.io/la-mesa/#video) · [archivo mp4](docs/video/la-mesa.mp4)</sub>
 
 🎨 **Dirección creativa:** [Gabriela Chávez Castellano](https://www.instagram.com/gabrielae.cc)
 </div>
@@ -31,23 +31,25 @@ La marca —identidad visual, tono, nombre— es ficticia y la creé para el pro
 
 ## Lo que más me interesa que se mire
 
-**Mesa Compartida.** El lema de la marca es "donde todo se comparte", así que lo convertí en función en vez de dejarlo en el eslogan: abres una mesa, compartes un código de seis dígitos, y cada quien agrega sus platos al mismo pedido desde su teléfono. Los cambios de los demás aparecen en tu pantalla en vivo. Al cerrar, cada uno paga lo suyo o alguien invita. Ninguna app grande de la categoría en Colombia lo tiene resuelto.
+**Mesa Compartida.** El lema de la marca es "donde todo se comparte", así que lo convertí en pantalla en vez de dejarlo en el eslogan: abres una mesa, compartes un código de seis caracteres, y quienes se sientan contigo aparecen alrededor del anillo, cada uno con lo suyo. Al cerrar, cada uno paga su parte o alguien invita. Hoy está el diseño, la pantalla y las tablas, y en la demo corre con comensales de ejemplo; qué falta para que sea real está dicho [más abajo](#lo-que-no-está-hecho).
 
 **La mesa que gira.** El menú no arranca como una lista sino como una mesa vista desde arriba, con las categorías servidas alrededor. Se gira con el dedo —y encaja sola en el plato más cercano al soltar, con su punto de inercia— o se toca un plato y la mesa gira hasta traerlo al frente antes de abrir esa categoría. La navegación y la metáfora de la marca son el mismo gesto, no dos cosas pegadas.
 
 **El anillo.** El isotipo es un anillo abierto —una mesa vista desde arriba— y lo usé como dispositivo estructural en toda la app: rodea a quienes comparten mesa, se llena a medida que avanza el pedido, marca el progreso hacia el siguiente nivel de fidelidad. Es el único gesto decorativo que me permití; todo lo demás se mantiene sobrio.
 
-**La seguridad del pago.** El monto a cobrar nunca sale del teléfono. La app manda solo el id del pedido y el servidor recalcula el total desde la base antes de firmar. En el otro sentido, la app nunca decide que un pago salió bien: eso lo confirma la pasarela contra un webhook cuyo checksum se valida. Quien tenga el APK puede leer cualquier cosa que esté dentro de la app, así que el secreto de integridad vive en el servidor y nada más. Detalles en [`supabase/functions/README.md`](supabase/functions/README.md).
+**El precio lo pone la carta, no el teléfono.** Quien tenga la app puede llamar a la API sin pasar por ella, así que la base no se cree ninguna cifra que le manden: al guardar un pedido, el nombre y el precio de cada plato salen de la carta, las opciones que no existan se descartan, el cupón se comprueba —vigencia, mínimo, usos— y el total se suma en un disparador. Lo mismo con el perfil: la seguridad por fila decide qué filas ve cada quien, y los permisos de columna impiden que alguien se cambie el rol o se regale puntos. Está en [`supabase/endurecimiento.sql`](supabase/endurecimiento.sql) y lo comprueban 57 pruebas que entran con el rol de un cliente, de la cuenta demo y de cocina.
 
-**Que no se rompa sin que nadie se entere.** Cada push corre cinco verificaciones distintas, incluidas dos que escribí para este proyecto: una mide el contraste de los catorce pares de color de la paleta contra WCAG AA, y otra comprueba que cada tabla, columna y estado que el código le pide a la base exista de verdad en el esquema.
+**La seguridad del pago.** El monto a cobrar nunca sale del teléfono. La app manda solo el id del pedido y el servidor lee de la base el total que la propia base calculó antes de firmar. En el otro sentido, la app nunca decide que un pago salió bien: eso lo confirma la pasarela contra un webhook cuyo checksum se valida. Quien tenga el APK puede leer cualquier cosa que esté dentro de la app, así que el secreto de integridad vive en el servidor y nada más. Detalles en [`supabase/functions/README.md`](supabase/functions/README.md).
+
+**Que no se rompa sin que nadie se entere.** Cada push corre seis verificaciones distintas, incluidas tres que escribí para este proyecto: una levanta el esquema entero en un PostgreSQL vacío y le lanza las 57 pruebas de seguridad; otra mide el contraste de los catorce pares de color de la paleta contra WCAG AA, y otra comprueba que cada tabla, columna y estado que el código le pide a la base exista de verdad en el esquema.
 
 ## Cómo está armado
 
 | Pieza | Qué es | Stack |
 |---|---|---|
-| [`app-movil/`](app-movil/) | App del cliente, iOS y Android · 16 pantallas | Expo · React Native · TypeScript · Zustand |
+| [`app-movil/`](app-movil/) | App del cliente, iOS, Android y web · 16 pantallas | Expo · React Native · TypeScript · Zustand |
 | [`panel/`](panel/) | Tablero de cocina y gestión de menú | HTML, CSS y JS sin dependencias |
-| [`supabase/`](supabase/) | 20 tablas con seguridad por fila, datos semilla y 3 funciones de servidor | PostgreSQL · Deno Edge Functions |
+| [`supabase/`](supabase/) | 20 tablas con seguridad por fila y por columna, precios calculados en la base, 57 pruebas y 3 funciones de servidor | PostgreSQL · Deno Edge Functions |
 | [`prototipo/`](prototipo/) | Prototipo navegable, previo al código real | HTML de un solo archivo |
 | [`docs/`](docs/) | Brief, capturas, verificador de contraste y de esquema | Python · Node |
 
@@ -87,12 +89,15 @@ cd app-movil && npx tsc --noEmit                     # TypeScript sin errores
 cd app-movil && npx expo export --platform android   # el bundle resuelve entero
 python3 docs/contraste.py                            # 14 pares de color pasan WCAG AA
 node supabase/functions/_pruebas/firma.prueba.mjs    # 11 pruebas de firma y checksum
-node docs/revisar-esquema.mjs                        # 56 archivos concuerdan con las 20 tablas
+node docs/revisar-esquema.mjs                        # el código concuerda con las 20 tablas
+bash supabase/pruebas/probar.sh                      # 57 pruebas de seguridad contra PostgreSQL
 ```
 
 El verificador de contraste nació de un problema real: medí la paleta de la marca y cuatro usos no pasaban el mínimo de legibilidad. El naranja mandarina como precio de 13 px daba 2,85 sobre 4,5 requerido. La solución no fue cambiar la marca sino separar los usos —la paleta original para superficies y acciones, variantes más profundas del mismo tono para texto— y dejar el verificador para que no se degrade sin que nadie se entere.
 
 Las pruebas de firma comprueban contra el ejemplo publicado por Wompi que mi hash coincide con el suyo, y que un checksum alterado, un monto manipulado o un secreto equivocado se rechacen.
+
+Las pruebas de seguridad nacieron de tres agujeros de verdad. El esquema compilaba y la demo funcionaba, pero cualquier cuenta podía cambiarse el rol —también la cuenta demo de cocina, cuya contraseña es pública, que así dejaba de ser de solo lectura—, el total del pedido era el que mandaba la app, y se podían añadir platos a un pedido ya entregado. Las pruebas se escribieron primero contra el esquema viejo, para verlas fallar, y después contra el endurecido. No prueban la interfaz: entran como entraría alguien con la clave pública y la consola abierta.
 
 El verificador de esquema es el que más veces me ha salvado: recorre los 56 archivos que tocan la base y falla si el código consulta una tabla, una columna o un estado que el esquema no tiene. Un `select` mal escrito no llega a producción para descubrirse ahí.
 
@@ -106,13 +111,17 @@ npm install
 npm start        # escanea el QR con Expo Go
 ```
 
-Arranca en modo demostración con el menú completo, carrito, cupones y puntos. Para conectarla a un backend real: copiar `.env.example` a `.env`, correr `supabase/schema.sql` y `supabase/seed.sql`, y pegar las credenciales. La app detecta sola que hay backend.
+Arranca en modo demostración con el menú completo, carrito, cupones y puntos. Para conectarla a un backend real: copiar `.env.example` a `.env`, correr en orden `schema.sql`, `seed.sql`, `correcciones.sql`, `cuenta-demo.sql` y `endurecimiento.sql` de [`supabase/`](supabase/), y pegar las credenciales. La app detecta sola que hay backend.
 
 **El panel y el prototipo:** abrir el `.html` en el navegador. No hay nada que instalar. El prototipo acepta enlace directo a cualquier pantalla —`la-mesa-app.html#seguimiento`— para enseñar una sola sin navegar hasta ella.
 
 ## Lo que no está hecho
 
 Prefiero decirlo a que se note.
+
+La Mesa Compartida no comparte todavía. Abrir la mesa, el código y la pantalla existen, igual que las tablas `mesas` y `mesa_participantes`, pero cada quien sigue pidiendo desde su propio carrito y la pantalla enseña comensales de ejemplo. Para que sea real faltan las políticas que dejen a los comensales de una mesa verse entre sí sin exponer su perfil entero, y una tabla de platos por mesa que se sincronice en vivo.
+
+El cobro es simulado. La integración con Wompi está escrita y probada —firma de integridad, webhook con checksum—, pero sin credenciales de la pasarela el pedido nace ya pagado. `sanear_pedido()` deja anotado qué cambia el día que haya pasarela real.
 
 La asignación de mensajero es manual desde el panel, no por API.
 
@@ -128,7 +137,7 @@ Las notificaciones tienen dos categorías —pedidos y promociones— que la per
 
 Built as a personal project. The brand is fictional and I designed it for this — the point is showing how I take something from a design system image to a system that compiles, verifies itself, and can be deployed.
 
-Both demo links at the top are live and interactive, running on demo data. The kitchen panel signs in by itself with a read-only demo account enforced by row-level security, and order creation is rate-limited in the database. Highlights: a shared-table feature where several people build one order from their own phones; a category picker shaped like a turntable you actually spin with your finger; server-side payment signing where the amount is never trusted from the client; and two checkers I wrote for this project — one that measures the brand palette against WCAG AA, and one that fails the build if the code queries a table, column or state the schema doesn't have.
+Both demo links at the top are live and interactive, running on demo data. The kitchen panel signs in by itself with a read-only demo account enforced by row-level security, and order creation is rate-limited in the database. Highlights: a shared-table screen built around the brand's ring (designed and prototyped; live cart sharing between phones is listed as not done); a category picker shaped like a turntable you actually spin with your finger; order totals computed in the database rather than trusted from the client, checked by 57 security tests that run against a real PostgreSQL; server-side payment signing; and two checkers I wrote for this project — one that measures the brand palette against WCAG AA, and one that fails the build if the code queries a table, column or state the schema doesn't have.
 
 Code and comments are in Spanish — it's a Colombian brand and the team maintaining it would speak Spanish.
 
