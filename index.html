@@ -4,220 +4,382 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>La Mesa · Sistema de pedidos para restaurante</title>
-<meta name="description" content="App móvil, panel de cocina y backend para un restaurante. Proyecto personal: la app corre contra el backend real y se puede tocar aquí mismo.">
+<meta name="description" content="App móvil, panel de cocina y backend para un restaurante. Proyecto personal: la app y el panel corren contra el backend real y se pueden tocar aquí mismo.">
+<meta property="og:type" content="website">
 <meta property="og:title" content="La Mesa · Sistema de pedidos para restaurante">
-<meta property="og:description" content="App móvil, panel de cocina y backend, los tres en vivo. La app corre contra el backend real, no una maqueta.">
-<meta property="og:image" content="docs/capturas/portada-app.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta property="og:description" content="App móvil, panel de cocina y backend, los tres en vivo. El precio de cada pedido lo calcula la base de datos, no el teléfono.">
+<meta property="og:image" content="https://danielbuitragoh.github.io/la-mesa/docs/capturas/portada.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#151311">
+<link rel="icon" href="app-web/favicon.ico">
+<link rel="preload" href="docs/fuentes/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="docs/fuentes/montserrat.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+@font-face{font-family:'Instrument Serif';src:url('docs/fuentes/instrument-serif.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Instrument Serif';font-style:italic;src:url('docs/fuentes/instrument-serif-cursiva.woff2') format('woff2');font-display:swap}
+@font-face{font-family:'Montserrat';font-weight:100 900;src:url('docs/fuentes/montserrat.woff2') format('woff2');font-display:swap}
+
 :root{
-  --naranja:#F26B1F; --naranja-texto:#B8480A; --amarillo:#F9C65C;
-  --marfil:#FFF6ED; --carbon:#1F1F1F; --teal:#2EBC83; --crema:#FBEEE1;
-  --tinta-60:rgba(255,246,237,.66); --tinta-40:rgba(255,246,237,.44);
+  --naranja:#F26B1F; --naranja-claro:#FF8A47; --amarillo:#F9C65C; --teal:#2EBC83;
+  --marfil:#FFF6ED; --crema:#FBEEE1; --carbon:#1F1F1F; --fondo:#151311;
+  --texto:rgba(255,246,237,.74); --tenue:rgba(255,246,237,.56);
+  --linea:rgba(255,246,237,.11); --panel:rgba(255,246,237,.045);
   --display:'Canela','Instrument Serif',Georgia,serif;
   --cuerpo:'Montserrat',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --ancho:1120px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--cuerpo);background:#151311;color:var(--marfil);
-  -webkit-font-smoothing:antialiased;overflow-x:hidden}
+html{scroll-behavior:smooth}
+body{font-family:var(--cuerpo);background:var(--fondo);color:var(--marfil);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(900px 620px at 16% 4%,rgba(242,107,31,.24),transparent 62%),
-             radial-gradient(760px 540px at 92% 96%,rgba(46,188,131,.14),transparent 60%)}
+  background:radial-gradient(900px 620px at 12% -4%,rgba(242,107,31,.26),transparent 62%),
+             radial-gradient(760px 540px at 96% 100%,rgba(46,188,131,.12),transparent 60%)}
 a{color:inherit;text-decoration:none}
-.env{max-width:1080px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+img{display:block;max-width:100%;height:auto}
+main{overflow-x:clip}
+.env{max-width:var(--ancho);margin:0 auto;padding:0 24px;position:relative;z-index:1}
+:focus-visible{outline:2px solid var(--amarillo);outline-offset:3px;border-radius:6px}
 
-header{padding:72px 0 0;text-align:center}
-.marca{display:inline-flex;align-items:center;gap:8px;margin-bottom:40px}
-.marca span{font-family:var(--display);font-size:30px;color:var(--naranja)}
-h1{font-family:var(--display);font-size:clamp(40px,7vw,68px);line-height:1.05;letter-spacing:-.01em}
-.lema{font-size:11px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;
-  color:var(--tinta-40);margin-top:20px}
-.entrada{font-size:16px;line-height:1.65;color:var(--tinta-60);max-width:620px;margin:24px auto 0}
+/* ---------- barra ---------- */
+.barra{display:flex;align-items:center;justify-content:space-between;padding:26px 0}
+.marca{display:inline-flex;align-items:center;gap:8px;font-family:var(--display);font-size:28px;color:var(--marfil)}
+.barra nav{display:flex;gap:6px}
+.barra nav a{font-size:13px;font-weight:600;color:var(--texto);padding:10px 14px;border-radius:10px;transition:background .2s,color .2s}
+.barra nav a:hover{background:var(--panel);color:var(--marfil)}
 
-.acciones{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:40px 0 8px}
-.btn{display:inline-flex;align-items:center;gap:9px;height:52px;padding:0 26px;border-radius:12px;
-  font-size:14.5px;font-weight:600;transition:transform .16s ease,box-shadow .2s ease,background .2s ease}
+/* ---------- portada ---------- */
+.portada{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:48px;align-items:center;padding:44px 0 96px}
+.antetitulo{font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--amarillo)}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(44px,6.4vw,78px);line-height:1.02;letter-spacing:-.012em;margin-top:18px}
+h1 em{font-style:italic;color:var(--naranja-claro)}
+.entrada{font-size:17px;line-height:1.7;color:var(--texto);max-width:520px;margin-top:24px}
+.acciones{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:54px;padding:0 26px;border-radius:14px;
+  font-size:15px;font-weight:600;transition:transform .16s ease,box-shadow .2s ease,background .2s ease,border-color .2s}
 .btn:hover{transform:translateY(-2px)}
-.btn-1{background:var(--naranja);color:#fff;box-shadow:0 10px 30px rgba(242,107,31,.34)}
-.btn-1:hover{background:#E15E15;box-shadow:0 14px 38px rgba(242,107,31,.44)}
-.btn-2{background:rgba(255,246,237,.08);border:1px solid rgba(255,246,237,.18)}
-.btn-2:hover{background:rgba(255,246,237,.14)}
-.nota{font-size:12.5px;color:var(--tinta-40);margin-top:14px}
+.btn-1{background:var(--naranja);color:#1a0c03;box-shadow:0 12px 34px rgba(242,107,31,.36)}
+.btn-1:hover{background:var(--naranja-claro);box-shadow:0 16px 42px rgba(242,107,31,.46)}
+.btn-2{background:rgba(255,246,237,.07);border:1px solid rgba(255,246,237,.2)}
+.btn-2:hover{background:rgba(255,246,237,.13);border-color:rgba(255,246,237,.38)}
+.enlaces{display:flex;gap:22px;flex-wrap:wrap;margin-top:22px;font-size:13.5px;font-weight:600}
+.enlaces a{color:var(--texto);border-bottom:1px solid rgba(255,246,237,.26);padding-bottom:3px;transition:color .2s,border-color .2s}
+.enlaces a:hover{color:var(--marfil);border-color:var(--naranja)}
+.nota{font-size:12.5px;line-height:1.6;color:var(--tenue);max-width:500px;margin-top:26px}
 
-.portada{margin:64px 0 0;border-radius:20px;overflow:hidden;
-  box-shadow:0 40px 90px rgba(0,0,0,.55);border:1px solid rgba(255,246,237,.09)}
-.portada img{width:100%;display:block}
+.telefonos{position:relative;height:620px}
+.tel{position:absolute;width:262px;border-radius:30px;overflow:hidden;background:var(--marfil);
+  border:7px solid #0b0a09;box-shadow:0 34px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,246,237,.14)}
+.tel img{width:100%}
+.tel-1{left:0;top:54px;transform:rotate(-5deg)}
+.tel-2{left:50%;top:0;margin-left:-131px;z-index:2}
+.tel-3{right:0;top:66px;transform:rotate(5deg)}
 
-section{padding:88px 0}
-h2{font-family:var(--display);font-size:clamp(28px,4vw,40px);line-height:1.1;margin-bottom:16px}
-.sub{font-size:15px;line-height:1.7;color:var(--tinta-60);max-width:660px}
+/* ---------- cifras ---------- */
+.cifras{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--linea);border-bottom:1px solid var(--linea)}
+.cifra{padding:30px 24px 30px 0}
+.cifra + .cifra{padding-left:28px;border-left:1px solid var(--linea)}
+.cifra b{display:block;font-family:var(--display);font-weight:400;font-size:46px;line-height:1;color:var(--marfil)}
+.cifra span{display:block;font-size:13px;line-height:1.5;color:var(--texto);margin-top:10px}
 
-.piezas{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:44px}
-.pieza{background:rgba(255,246,237,.045);border:1px solid rgba(255,246,237,.09);
-  border-radius:16px;padding:28px;transition:.2s}
-.pieza:hover{background:rgba(255,246,237,.075);border-color:rgba(242,107,31,.4)}
-.pieza h3{font-family:var(--display);font-size:23px;margin-bottom:10px}
-.pieza p{font-size:13.5px;line-height:1.65;color:var(--tinta-60)}
-.pieza .stack{font-size:11px;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--naranja);margin-top:16px;font-weight:600}
+/* ---------- secciones ---------- */
+.seccion{padding:104px 0 0}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(32px,4.4vw,50px);line-height:1.08;letter-spacing:-.008em}
+.sub{font-size:16px;line-height:1.7;color:var(--texto);max-width:640px;margin-top:16px}
 
-.galeria{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:44px}
-.galeria figure{border-radius:16px;overflow:hidden;border:1px solid rgba(255,246,237,.09);
-  background:rgba(255,246,237,.04)}
-.galeria img{width:100%;display:block}
-.galeria figcaption{padding:18px 22px;font-size:13px;line-height:1.6;color:var(--tinta-60)}
-.galeria figcaption b{color:var(--marfil);font-weight:600}
+.piezas{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:44px}
+.pieza{background:var(--panel);border:1px solid var(--linea);border-radius:20px;padding:30px;
+  display:flex;flex-direction:column;transition:background .2s,border-color .2s,transform .2s}
+.pieza:hover{background:rgba(255,246,237,.075);border-color:rgba(242,107,31,.45);transform:translateY(-3px)}
+.pieza .n{font-family:var(--display);font-size:20px;color:var(--naranja-claro)}
+.pieza h3{font-family:var(--display);font-weight:400;font-size:28px;margin-top:14px}
+.pieza p{font-size:14px;line-height:1.7;color:var(--texto);margin-top:10px;flex:1}
+.pieza .stack{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--amarillo);margin-top:22px;font-weight:600}
+.pieza .ir{font-size:13.5px;font-weight:600;margin-top:16px;color:var(--marfil)}
+.pieza .ir::after{content:' →';color:var(--naranja-claro)}
 
-.checks{display:flex;flex-direction:column;gap:2px;margin-top:36px;
-  background:rgba(0,0,0,.34);border-radius:14px;padding:22px 24px;
-  border:1px solid rgba(255,246,237,.08);font-size:13.5px}
-.check{display:flex;align-items:center;gap:12px;padding:9px 0;color:var(--tinta-60)}
-.check svg{flex:none}
+.fila{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:64px;align-items:center;padding:96px 0 0}
+.fila.al-reves .texto{order:2}
+.fila h3{font-family:var(--display);font-weight:400;font-size:clamp(28px,3.4vw,40px);line-height:1.1}
+.fila h3{margin-top:14px}
+.fila p:not(.antetitulo){font-size:15.5px;line-height:1.75;color:var(--texto);margin-top:16px;max-width:480px}
+.fila p:not(.antetitulo) + p{margin-top:12px}
+.fila p.honesto{font-size:13.5px;color:var(--tenue);margin-top:18px;border-left:2px solid var(--amarillo);padding-left:14px}
+.visual{display:flex;justify-content:center}
+.visual .tel{position:static;width:286px}
+.visual.ancho img{border-radius:16px;border:1px solid var(--linea);box-shadow:0 30px 70px rgba(0,0,0,.5)}
+
+.consola{width:100%;background:#0d0c0b;border:1px solid var(--linea);border-radius:16px;overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,.5);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+.consola .cabecera{display:flex;gap:7px;padding:13px 16px;border-bottom:1px solid var(--linea);align-items:center}
+.consola .cabecera i{width:10px;height:10px;border-radius:50%;background:rgba(255,246,237,.2)}
+.consola .cabecera span{margin-left:10px;color:var(--tenue);font-size:12px}
+.consola ul{list-style:none;padding:14px 18px 18px}
+.consola li{display:flex;gap:12px;padding:5px 0;color:rgba(255,246,237,.82);line-height:1.5}
+.consola li::before{content:'ok';color:var(--teal);font-weight:700;flex:none}
+.consola .final{color:var(--amarillo);border-top:1px dashed var(--linea);margin-top:8px;padding-top:12px}
+.consola .final::before{content:'';display:none}
+
+.video{margin-top:44px;border-radius:20px;overflow:hidden;border:1px solid var(--linea);box-shadow:0 40px 90px rgba(0,0,0,.55);background:#000}
+.video video{display:block;width:100%;height:auto}
+
+.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:0 40px;margin-top:36px;border-top:1px solid var(--linea)}
+.check{display:flex;align-items:flex-start;gap:14px;padding:18px 0;border-bottom:1px solid var(--linea);font-size:14px;line-height:1.6;color:var(--texto)}
+.check svg{flex:none;margin-top:3px}
 .check b{color:var(--marfil);font-weight:600}
 
-footer{padding:56px 0 72px;text-align:center;font-size:12.5px;color:var(--tinta-40);
-  border-top:1px solid rgba(255,246,237,.08)}
+.cierre{text-align:center;padding:112px 0 0}
+.cierre h2{max-width:720px;margin:0 auto}
+.cierre .acciones{justify-content:center}
 
-@media (max-width:720px){
-  header{padding-top:48px}
-  section{padding:60px 0}
-  .galeria{grid-template-columns:1fr}
+footer{margin-top:104px;padding:40px 0 64px;text-align:center;font-size:12.5px;line-height:1.8;color:var(--tenue);border-top:1px solid var(--linea)}
+footer a{border-bottom:1px solid rgba(255,246,237,.26)}
+
+@media (max-width:980px){
+  .portada{grid-template-columns:1fr;gap:56px;padding-bottom:72px}
+  .telefonos{height:540px;max-width:560px;width:100%;margin:0 auto}
+  .tel{width:226px}
+  .tel-2{margin-left:-113px}
+  .piezas{grid-template-columns:1fr}
+  .fila{grid-template-columns:1fr;gap:40px;padding-top:72px}
+  .fila.al-reves .texto{order:0}
+  .checks{grid-template-columns:1fr}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:640px){
+  .barra nav a:not(.fijo){display:none}
+  .cifras{grid-template-columns:1fr 1fr}
+  .cifra{padding:24px 16px 24px 0}
+  .cifra + .cifra{padding-left:20px}
+  .cifra:nth-child(3){padding-left:0;border-left:0}
+  .cifra:nth-child(n+3){border-top:1px solid var(--linea)}
+  .cifra b{font-size:38px}
+  .seccion{padding-top:76px}
+  .telefonos{height:430px}
+  .tel{width:176px;border-width:5px;border-radius:22px}
+  .tel-2{margin-left:-88px}
+  .tel-1{top:40px}.tel-3{top:48px}
+  .btn{width:100%;justify-content:center}
+  .consola{font-size:11.5px}
+  .cierre{padding-top:84px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 
-<header class="env">
-  <div class="marca">
-    <span>La Mesa</span>
-    <svg width="24" height="24" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15"
-      fill="none" stroke="#F26B1F" stroke-width="6.4" stroke-linecap="round"
-      stroke-dasharray="83 11.3" transform="rotate(-16 20 20)"/></svg>
-  </div>
-
-  <h1>Un restaurante que<br>vende por su cuenta</h1>
-  <p class="lema">Donde todo se comparte</p>
-
-  <p class="entrada">
-    App móvil, tablero de cocina en tiempo real y backend con pagos firmados.
-    El sistema completo que necesitaría un restaurante para no ceder el 30% de
-    comisión a una plataforma de delivery.
-  </p>
-
-  <div class="acciones">
-    <a class="btn btn-1" href="app-web/">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.6 18.6h2.8"/></svg>
-      Abrir la app
+<div class="env">
+  <header class="barra">
+    <a class="marca" href="./" aria-label="La Mesa, inicio">
+      La Mesa
+      <svg width="22" height="22" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15"
+        fill="none" stroke="#F26B1F" stroke-width="6.4" stroke-linecap="round"
+        stroke-dasharray="83 11.3" transform="rotate(-16 20 20)"/></svg>
     </a>
-    <a class="btn btn-2" href="panel/panel-admin.html">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="4" width="7" height="16" rx="2"/><rect x="13.6" y="4" width="7" height="9" rx="2"/></svg>
-      Abrir el panel de cocina
-    </a>
-    <a class="btn btn-2" href="prototipo/la-mesa-app.html">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-      Ver el prototipo
-    </a>
-    <a class="btn btn-2" href="https://github.com/Daniel-debug-java/la-mesa">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 6.6 2 12.3c0 4.5 2.9 8.3 6.8 9.7.5.1.7-.2.7-.5v-1.8c-2.8.6-3.4-1.4-3.4-1.4-.4-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 .1 1.5 1 1.5 1 .9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.6-1.4-2.2-.3-4.6-1.2-4.6-5.2 0-1.1.4-2.1 1-2.8-.1-.3-.4-1.4.1-2.9 0 0 .8-.3 2.7 1.1a9 9 0 0 1 5 0c1.9-1.4 2.7-1.1 2.7-1.1.5 1.5.2 2.6.1 2.9.6.7 1 1.7 1 2.8 0 4-2.4 4.9-4.6 5.2.4.3.7 1 .7 2v3c0 .3.2.6.7.5A10.3 10.3 0 0 0 22 12.3C22 6.6 17.5 2 12 2z"/></svg>
-      Ver el código
-    </a>
-  </div>
-  <p class="nota">La app y el panel corren contra el backend real, con datos de demostración. El prototipo es solo un recorrido visual, sin backend. Se pueden tocar.</p>
+    <nav aria-label="Demos">
+      <a href="app-web/">La app</a>
+      <a href="panel/panel-admin.html?demo">El panel</a>
+      <a class="fijo" href="https://github.com/danielbuitragoh/la-mesa">Código</a>
+    </nav>
+  </header>
 
-  <div class="portada"><img src="docs/capturas/portada-app.png" alt="Cuatro pantallas de la app de La Mesa"></div>
-</header>
+  <main>
+    <section class="portada">
+      <div>
+        <p class="antetitulo">App · panel de cocina · backend</p>
+        <h1>Un restaurante que vende <em>por su cuenta</em></h1>
+        <p class="entrada">
+          El sistema completo que necesitaría un restaurante para no ceder el 30&nbsp;% de comisión
+          a una plataforma de delivery: la app del cliente, el tablero que usa la cocina y la base
+          de datos que los conecta.
+        </p>
+        <div class="acciones">
+          <a class="btn btn-1" href="app-web/">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.6 18.6h2.8"/></svg>
+            Abrir la app
+          </a>
+          <a class="btn btn-2" href="panel/panel-admin.html?demo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.4" y="4" width="7" height="16" rx="2"/><rect x="13.6" y="4" width="7" height="9" rx="2"/></svg>
+            Abrir el panel de cocina
+          </a>
+        </div>
+        <div class="enlaces">
+          <a href="prototipo/la-mesa-app.html">Ver el prototipo</a>
+          <a href="https://github.com/danielbuitragoh/la-mesa">Ver el código</a>
+          <a href="#video">Verlo en un minuto</a>
+        </div>
+        <p class="nota">
+          La app y el panel corren contra el backend real, con datos de demostración; el panel entra
+          solo con una cuenta de cocina de solo lectura. El pago es simulado.
+        </p>
+      </div>
 
-<section class="env">
-  <h2>Tres piezas, un sistema</h2>
-  <p class="sub">El cliente pide, la cocina lo ve al instante y el pago se firma en el servidor.
-    Cada pieza resuelve una parte y todas hablan la misma base de datos.</p>
+      <div class="telefonos" aria-hidden="true">
+        <div class="tel tel-1"><img src="docs/capturas/vivo/menu.png" alt="" width="338" height="722"></div>
+        <div class="tel tel-2"><img src="docs/capturas/vivo/inicio.png" alt="" width="338" height="722"></div>
+        <div class="tel tel-3"><img src="docs/capturas/vivo/seguimiento.png" alt="" width="338" height="722"></div>
+      </div>
+    </section>
 
-  <div class="piezas">
-    <div class="pieza">
-      <h3>La app</h3>
-      <p>Doce pantallas: carta editorial, personalización de platos, carrito, pago,
-        seguimiento en vivo y una mesa compartida donde varios pidan a la vez.</p>
-      <div class="stack">Expo · React Native · TypeScript</div>
-    </div>
-    <div class="pieza">
-      <h3>El panel</h3>
-      <p>Tablero de cuatro columnas con reloj por pedido, aviso sonoro al entrar uno nuevo,
-        y gestión completa de menú, fotos y promociones.</p>
-      <div class="stack">HTML · CSS · JS sin dependencias</div>
-    </div>
-    <div class="pieza">
-      <h3>El backend</h3>
-      <p>Diecinueve tablas con seguridad por fila, tiempo real, y funciones de servidor
-        que firman el cobro y validan la confirmación de la pasarela.</p>
-      <div class="stack">PostgreSQL · Deno Edge Functions</div>
-    </div>
-  </div>
-</section>
+    <section class="cifras" aria-label="El proyecto en cifras">
+      <div class="cifra"><b>16</b><span>pantallas en la app del cliente</span></div>
+      <div class="cifra"><b>20</b><span>tablas, todas con seguridad por fila</span></div>
+      <div class="cifra"><b>57</b><span>pruebas de seguridad contra PostgreSQL</span></div>
+      <div class="cifra"><b>6</b><span>comprobaciones automáticas en cada push</span></div>
+    </section>
 
-<section class="env">
-  <h2>Lo que hace distinto a esto</h2>
-  <p class="sub">La marca dice "donde todo se comparte". En vez de dejarlo en el eslogan,
-    lo convertí en función.</p>
+    <section class="seccion">
+      <h2>Tres piezas, un sistema</h2>
+      <p class="sub">El cliente pide, la cocina lo ve al instante y el total lo calcula el servidor.
+        Cada pieza resuelve una parte y las tres hablan con la misma base de datos.</p>
 
-  <div class="galeria">
-    <figure>
-      <img src="docs/capturas/app-mesa.png" alt="Pantalla de mesa compartida">
-      <figcaption><b>Mesa Compartida.</b> Abres una mesa, compartes un código de seis dígitos
-        y cada quien agrega sus platos desde su teléfono al mismo pedido. Al cerrar, cada uno
-        paga lo suyo o alguien invita. Los comensales se sientan alrededor del isotipo de la marca.</figcaption>
-    </figure>
-    <figure>
-      <img src="docs/capturas/panel-pedidos.png" alt="Tablero de pedidos de cocina">
-      <figcaption><b>El tablero de cocina.</b> Cada pedido lleva un reloj que pasa de gris a ámbar
-        a rojo según se demora, para ver de lejos qué se está atrasando. El aviso sonoro se genera
-        en el navegador, sin archivos externos, así suena aunque se caiga el internet.</figcaption>
-    </figure>
-  </div>
-</section>
+      <div class="piezas">
+        <a class="pieza" href="app-web/">
+          <span class="n">01</span>
+          <h3>La app</h3>
+          <p>Carta editorial, personalización de platos, carrito con cupones, pago y seguimiento
+            en vivo. En el portátil se abre dentro de un marco de teléfono.</p>
+          <span class="stack">Expo · React Native · TypeScript</span>
+          <span class="ir">Abrir la app</span>
+        </a>
+        <a class="pieza" href="panel/panel-admin.html?demo">
+          <span class="n">02</span>
+          <h3>El panel</h3>
+          <p>Tablero de cuatro columnas con un reloj por pedido, aviso sonoro al entrar uno nuevo
+            y gestión de la carta. Un solo archivo, sin dependencias.</p>
+          <span class="stack">HTML · CSS · JavaScript</span>
+          <span class="ir">Abrir el panel</span>
+        </a>
+        <a class="pieza" href="https://github.com/danielbuitragoh/la-mesa/tree/main/supabase">
+          <span class="n">03</span>
+          <h3>El backend</h3>
+          <p>Seguridad por fila y por columna, tiempo real, límite de pedidos por cuenta y funciones
+            de servidor que firman el cobro y validan la respuesta de la pasarela.</p>
+          <span class="stack">PostgreSQL · Supabase · Deno</span>
+          <span class="ir">Ver el SQL</span>
+        </a>
+      </div>
+    </section>
 
-<section class="env">
-  <h2>Verificado, no prometido</h2>
-  <p class="sub">Todo esto corre solo en cada push. La mayoría de proyectos de portafolio
-    no tienen forma de comprobar que funcionan.</p>
+    <section class="fila">
+      <div class="texto">
+        <p class="antetitulo">La mesa que gira</p>
+        <h3>La navegación y la marca son el mismo gesto</h3>
+        <p>La carta no arranca como una lista sino como una mesa vista desde arriba, con las
+          categorías servidas alrededor. Se gira con el dedo y encaja sola en el plato más cercano
+          al soltar, o se toca un plato y la mesa lo trae al frente.</p>
+        <p>El anillo abierto del isotipo se repite en toda la app: rodea a quienes comparten mesa
+          y se va llenando a medida que avanza el pedido.</p>
+      </div>
+      <div class="visual">
+        <div class="tel"><img src="docs/capturas/vivo/inicio.png" alt="Inicio de la app: una mesa redonda con cinco categorías alrededor" width="338" height="722" loading="lazy"></div>
+      </div>
+    </section>
 
-  <div class="checks">
-    <div class="check">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6"
-        stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
-      <span><b>TypeScript</b> sin un solo error en todo el proyecto</span>
-    </div>
-    <div class="check">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6"
-        stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
-      <span><b>El bundle de Android</b> compila entero: todas las rutas resuelven</span>
-    </div>
-    <div class="check">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6"
-        stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
-      <span><b>Los 14 pares de color</b> pasan WCAG AA — nació de encontrar cuatro fallos reales</span>
-    </div>
-    <div class="check">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6"
-        stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
-      <span><b>Once pruebas de firma de pago</b> contra el ejemplo publicado por la pasarela</span>
-    </div>
-    <div class="check">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6"
-        stroke-linecap="round" stroke-linejoin="round"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
-      <span><b>Cada tabla y columna</b> que el código le pide a la base existe de verdad</span>
-    </div>
-  </div>
-</section>
+    <section class="fila al-reves">
+      <div class="texto">
+        <p class="antetitulo">El tablero de cocina</p>
+        <h3>Que se vea de lejos qué se está atrasando</h3>
+        <p>Cada pedido lleva un reloj que pasa de gris a ámbar y a rojo según se demora. Cambiar de
+          estado es un toque, y el cambio llega al teléfono del cliente en segundos.</p>
+        <p>El aviso sonoro se genera en el navegador, sin archivos externos. La cuenta de
+          demostración ve lo mismo que el equipo, pero la base no le deja cambiar nada.</p>
+      </div>
+      <div class="visual ancho">
+        <img src="docs/capturas/panel-pedidos.png" alt="Tablero de cocina con cuatro columnas: recibidos, en preparación, listos y entregados" width="2880" height="1800" loading="lazy">
+      </div>
+    </section>
 
-<footer class="env">
-  Proyecto personal · La marca es ficticia, creada para este trabajo · Licencia MIT
-</footer>
+    <section class="fila">
+      <div class="texto">
+        <p class="antetitulo">El precio lo pone la carta</p>
+        <h3>La base no se cree lo que manda el teléfono</h3>
+        <p>Quien tenga la app puede llamar a la API sin pasar por ella. Por eso el nombre y el
+          precio de cada plato salen de la carta al guardar el pedido, el cupón se comprueba en el
+          servidor y el total se suma en la base. Una hamburguesa a un peso se guarda por lo que vale.</p>
+        <p>No es una promesa: son 57 pruebas que entran con el rol de un cliente, de la cuenta
+          demo y de cocina, e intentan cada trampa contra un PostgreSQL de verdad.</p>
+      </div>
+      <div class="visual">
+        <div class="consola" role="img" aria-label="Salida de las pruebas de seguridad de la base de datos">
+          <div class="cabecera"><i></i><i></i><i></i><span>bash supabase/pruebas/probar.sh</span></div>
+          <ul>
+            <li>un pedido recién creado no guarda el total que mandó la app</li>
+            <li>el precio es el de la carta más la tocineta, una sola vez</li>
+            <li>la opción inventada y la repetida no llegan a cocina</li>
+            <li>el 2x1 regala la hamburguesa más barata del par</li>
+            <li>la clienta no se puede hacer administradora</li>
+            <li>la cuenta demo no puede quitarse la marca de demo</li>
+            <li>no se añaden platos a un pedido que ya no es reciente</li>
+            <li>un segundo pedido en el mismo minuto se rechaza</li>
+            <li class="final">57 pasan · 0 fallan</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="fila al-reves">
+      <div class="texto">
+        <p class="antetitulo">Mesa compartida</p>
+        <h3>El lema de la marca, convertido en pantalla</h3>
+        <p>«Donde todo se comparte»: abres una mesa, compartes un código y quienes se sientan
+          contigo aparecen alrededor del anillo, cada uno con lo suyo. Al cerrar, cada quien paga
+          su parte o alguien invita.</p>
+        <p class="honesto">Lo que hay hoy: el diseño, la pantalla y las tablas. En la demo corre con
+          comensales de ejemplo; unir en vivo los carritos de varios teléfonos es el siguiente paso.</p>
+      </div>
+      <div class="visual">
+        <div class="tel"><img src="docs/capturas/vivo/mesa.png" alt="Pantalla de mesa compartida: cuatro comensales alrededor de la cuenta" width="338" height="722" loading="lazy"></div>
+      </div>
+    </section>
+
+    <section class="seccion" id="video">
+      <h2>En un minuto</h2>
+      <p class="sub">Un pedido de principio a fin: de la carta al tablero de cocina, y lo que la base
+        comprueba por el camino.</p>
+      <div class="video">
+        <video controls preload="none" playsinline poster="docs/capturas/portada.png" width="1920" height="1080">
+          <source src="docs/video/la-mesa.mp4" type="video/mp4">
+        </video>
+      </div>
+    </section>
+
+    <section class="seccion">
+      <h2>Verificado, no prometido</h2>
+      <p class="sub">Todo esto corre solo en cada push, antes de que nada llegue a esta página.</p>
+
+      <div class="checks">
+        <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
+          <span><b>TypeScript</b> sin un solo error en toda la app</span></div>
+        <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
+          <span><b>Los bundles de Android y web</b> compilan enteros: todas las rutas resuelven</span></div>
+        <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
+          <span><b>57 pruebas de seguridad</b> contra una base PostgreSQL levantada desde cero</span></div>
+        <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
+          <span><b>Los 14 pares de color</b> pasan WCAG AA; nació de encontrar cuatro fallos reales</span></div>
+        <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
+          <span><b>Once pruebas de firma de pago</b> contra el ejemplo publicado por la pasarela</span></div>
+        <div class="check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2EBC83" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.6 12.4 5 5L19.4 6.6"/></svg>
+          <span><b>Cada tabla y columna</b> que el código le pide a la base existe de verdad</span></div>
+      </div>
+    </section>
+
+    <section class="cierre">
+      <h2>Se puede tocar. Mejor que leerlo.</h2>
+      <div class="acciones">
+        <a class="btn btn-1" href="app-web/">Abrir la app</a>
+        <a class="btn btn-2" href="panel/panel-admin.html?demo">Abrir el panel de cocina</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Proyecto personal de <a href="https://danielbuitragoh.github.io/">Daniel Buitrago</a> ·
+    Dirección creativa: <a href="https://www.instagram.com/gabrielae.cc">Gabriela Chávez Castellano</a><br>
+    La marca es ficticia, creada para este trabajo · Licencia MIT
+  </footer>
+</div>
 
 </body>
 </html>

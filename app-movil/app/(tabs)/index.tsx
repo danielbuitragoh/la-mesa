@@ -238,6 +238,8 @@ export default function Inicio() {
  * confirmación visual de qué se eligió, no un adorno aparte del gesto.
  */
 const CENTRO = 165; // la rueda mide 330 × 330
+/** Ancho de la etiqueta de cada plato: «Hamburguesas» tiene que caber en una línea */
+const ANCHO_PLATO = 96;
 
 function MesaDeCategorias({ categorias }: { categorias: Categoria[] }) {
   const R = 137;
@@ -325,7 +327,7 @@ function MesaDeCategorias({ categorias }: { categorias: Categoria[] }) {
           <Text style={titulo('h2', { fontSize: 26, textAlign: 'center', marginTop: 5 })}>
             ¿Por dónde{'\n'}empezamos?
           </Text>
-          <Text style={[texto.b2, { color: color.tinta60, marginTop: 8 }]}>
+          <Text style={[texto.b2, { color: color.tinta60, marginTop: 8, textAlign: 'center' }]}>
             Gira la mesa o toca un plato
           </Text>
         </View>
@@ -339,7 +341,7 @@ function MesaDeCategorias({ categorias }: { categorias: Categoria[] }) {
                 categoria={c}
                 giro={giro}
                 estilo={{
-                  left: CENTRO + Math.cos(angulo) * R - 39,
+                  left: CENTRO + Math.cos(angulo) * R - ANCHO_PLATO / 2,
                   top: CENTRO + Math.sin(angulo) * R - 30,
                 }}
                 onPress={() => girarHacia(i, c.id)}
@@ -387,7 +389,7 @@ function PlatoCategoria({
       <Animated.View style={[s.platoDisco, estiloContragiro]}>
         <IconoCategoriaVivo nombre={categoria.icono as IconoCategoria} toque={toque} />
       </Animated.View>
-      <Animated.Text style={[s.platoNombre, estiloContragiro]} numberOfLines={2}>
+      <Animated.Text style={[s.platoNombre, estiloContragiro]} numberOfLines={1}>
         {categoria.nombre}
       </Animated.Text>
     </Pressable>
@@ -434,7 +436,7 @@ const s = StyleSheet.create({
     padding: e.e5,
     ...sombra.fuerte,
   },
-  plato: { position: 'absolute', width: 78, alignItems: 'center' },
+  plato: { position: 'absolute', width: ANCHO_PLATO, alignItems: 'center' },
   platoDisco: {
     width: 60,
     height: 60,

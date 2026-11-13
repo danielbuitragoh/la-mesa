@@ -107,6 +107,7 @@ export interface Direccion {
 export interface LineaCarrito {
   clave: string; // producto + opciones: dos veces lo mismo se suman
   producto_id: string;
+  categoria_id: string; // el 2x1 de una categoría solo cuenta sus platos
   nombre: string;
   imagen_url: string | null;
   precio_unitario: number; // incluye extras
