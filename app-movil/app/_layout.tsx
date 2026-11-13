@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { MarcoEscritorio } from '@/componentes/MarcoEscritorio';
 import { cargarFuentes } from '@/tema/fuentes';
 import { usarFavoritos } from '@/estado/favoritos';
 import { usarSesion } from '@/estado/sesion';
@@ -30,6 +31,7 @@ export default function Raiz() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
+        <MarcoEscritorio>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -50,6 +52,7 @@ export default function Raiz() {
           <Stack.Screen name="favoritos" />
           <Stack.Screen name="historial" />
         </Stack>
+        </MarcoEscritorio>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
